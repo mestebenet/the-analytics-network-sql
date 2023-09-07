@@ -56,8 +56,14 @@ SELECT order_number, product, store, date, quantity, sale, promotion, tax, credi
 	where date between '2022-10-01' and '2022-10-31'
 
 -- 11. Mostrar todos los productos que tengan EAN.
+SELECT product_code, name, category, subcategory, subsubcategory, material, color, origin, ean, is_active, has_bluetooth, size
+	FROM stg.product_master
+	where ean is not null;
 
 -- 12. Mostrar todas las lineas de venta que que hayan sido vendidas entre 1 de Octubre de 2022 y 10 de Noviembre de 2022.
+SELECT order_number, product, store, date, quantity, sale, promotion, tax, credit, currency, pos, is_walkout
+	FROM stg.order_line_sale
+	where date between '2022-10-01' and '2022-11-10'
 
 
 -- ## Semana 1 - Parte B
