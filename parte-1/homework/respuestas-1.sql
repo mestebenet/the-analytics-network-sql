@@ -28,14 +28,32 @@ SELECT store_id, country, province, city, address, name, type, start_date
 
 -- 6. Cuales fueron las ultimas 5 ordenes de ventas?
 
+SELECT order_number, product, store, date, quantity, sale, promotion, tax, credit, currency, pos, is_walkout
+	FROM stg.order_line_sale
+	order by date desc
+	limit 5;
+
 
 -- 7. Mostrar los primeros 10 registros de el conteo de trafico por Super store ordenados por fecha.
+ SELECT store_id, date, traffic
+	FROM stg.super_store_count
+	order by date
+	limit 10;
 
 -- 8. Cuales son los producto de electro que no son Soporte de TV ni control remoto.
+	SELECT product_code, name, category, subcategory, subsubcategory, material, color, origin, ean, is_active, has_bluetooth, size
+	FROM stg.product_master
+	where subsubcategory <> 'Control remoto' and subsubcategory <> 'Soporte';
 
 -- 9. Mostrar todas las lineas de venta donde el monto sea mayor a $100.000 solo para transacciones en pesos.
+SELECT order_number, product, store, date, quantity, sale, promotion, tax, credit, currency, pos, is_walkout
+	FROM stg.order_line_sale
+	where sale>100000 and currency='ARS';
 
 -- 10. Mostrar todas las lineas de ventas de Octubre 2022.
+SELECT order_number, product, store, date, quantity, sale, promotion, tax, credit, currency, pos, is_walkout
+	FROM stg.order_line_sale
+	where date between '2022-10-01' and '2022-10-31'
 
 -- 11. Mostrar todos los productos que tengan EAN.
 
