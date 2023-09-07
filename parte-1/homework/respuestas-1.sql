@@ -5,14 +5,29 @@
 select * from stg.product_master where categoria = 'Electro'
 
 -- 2. Cuales son los producto producidos en China?
-
+SELECT *
+	FROM stg.product_master
+	where origin='China';
+  
 -- 3. Mostrar todos los productos de Electro ordenados por nombre.
+SELECT *
+	FROM stg.product_master
+	order by name;
 
 -- 4. Cuales son las TV que se encuentran activas para la venta?
 
+SELECT *
+	FROM stg.product_master
+	where subcategory='TV' and is_active='true';
+
+
 -- 5. Mostrar todas las tiendas de Argentina ordenadas por fecha de apertura de las mas antigua a la mas nueva.
+SELECT store_id, country, province, city, address, name, type, start_date
+	FROM stg.store_master
+	order by start_date;
 
 -- 6. Cuales fueron las ultimas 5 ordenes de ventas?
+
 
 -- 7. Mostrar los primeros 10 registros de el conteo de trafico por Super store ordenados por fecha.
 
