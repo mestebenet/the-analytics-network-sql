@@ -139,9 +139,31 @@ SELECT product_code, name, category, subcategory, subsubcategory, material, colo
 	where name like '%PHILIPS%'AND is_active='true'
 
 -- 12. Obtener el monto vendido por tienda y moneda y ordenarlo de mayor a menor por valor nominal de las ventas (sin importar la moneda).
-
+SELECT store, sum(sale) total_ventas, currency
+	FROM stg.order_line_sale
+	group by store, currency
+	order by total_ventas desc
 -- 13. Cual es el precio promedio de venta de cada producto en las distintas monedas? Recorda que los valores de venta, impuesto, descuentos y creditos es por el total de la linea.
-
+with ventas as (
+    select 
+        product,
+        quantity,
+        currency,
+        sale as ventas,
+        CASE WHEN promotion is null THEN 0  
+             ELSE promotion END AS promotion,
+        CASE WHEN tax is null THEN 0  
+             ELSE tax END AS tax,
+        CASE WHEN credit is null THEN 0  
+             ELSE credit END AS credit
+    FROM stg.order_line_sale
+)
+   
+select product, currency,
+    ((sum(ventas) - sum(promotion) + sum(tax) - sum(credit)) / sum(quantity)) as preciopromedio
+from ventas
+group by product, currency
+order by product;
 -- 14. Cual es la tasa de impuestos que se pago por cada orden de venta?
 
 
