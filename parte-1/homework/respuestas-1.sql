@@ -134,6 +134,9 @@ SELECT store_id, TO_DATE(CAST(date AS VARCHAR), 'YYYYMMDD'),  traffic
 SELECT store_id, TO_DATE(date, 'YYYY-MM-DD'), traffic
 	FROM stg.super_store_count;
 -- 11. Cuales son los productos disponibles para la venta (activos) de la marca Phillips?
+SELECT product_code, name, category, subcategory, subsubcategory, material, color, origin, ean, is_active, has_bluetooth, size
+	FROM stg.product_master
+	where name like '%PHILIPS%'AND is_active='true'
 
 -- 12. Obtener el monto vendido por tienda y moneda y ordenarlo de mayor a menor por valor nominal de las ventas (sin importar la moneda).
 
