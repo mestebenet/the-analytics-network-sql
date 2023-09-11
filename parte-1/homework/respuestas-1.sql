@@ -75,16 +75,45 @@ SELECT order_number, product, store, date, quantity, sale, promotion, tax, credi
 SELECT count(distinct subcategory) FROM stg.product_master;
 
 -- 3. Cuales son las ordenes de venta de Argentina de mayor a $100.000?
+SELECT *
+	FROM stg.order_line_sale ol
+	left join stg.store_master sm on ol.store=sm.store_id
+	where sale>100000 and country='Argentina'
 
 -- 4. Obtener los decuentos otorgados durante Noviembre de 2022 en cada una de las monedas?
+SELECT currency, sum(promotion)
+	FROM stg.order_line_sale ol
+	group by currency
 
 -- 5. Obtener los impuestos pagados en Europa durante el 2022.
+SELECT sum(tax), country
+	FROM stg.order_line_sale ol
+	left join stg.store_master sm on ol.store=sm.store_id
+	where date between '2022-01-01' and '2022-12-31'
+	group by country
+	having country='Uruguay'
 
 -- 6. En cuantas ordenes se utilizaron creditos?
+SELECT count(order_number)
+	FROM stg.order_line_sale ol
+	where credit is not null
 
 -- 7. Cual es el % de descuentos otorgados (sobre las ventas) por tienda?
+SELECT store,
+       SUM(sale) AS total_sales,
+       SUM(promotion) AS total_promotion,
+       CASE
+           WHEN SUM(sale) = 0 THEN 0  -- Evitar la división por cero
+           ELSE (SUM(promotion) / SUM(sale))*100
+       END AS promotion_to_sales_ratio
+FROM stg.order_line_sale ol
+GROUP BY store;
 
 -- 8. Cual es el inventario promedio por dia que tiene cada tienda?
+SELECT date, store_id,sum(initial+final/2) as promedio
+	FROM stg.inventory
+	group by date, store_id
+	order by date
 
 -- 9. Obtener las ventas netas y el porcentaje de descuento otorgado por producto en Argentina.
 
