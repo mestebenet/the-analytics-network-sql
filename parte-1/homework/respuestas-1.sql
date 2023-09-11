@@ -128,7 +128,11 @@ where country='Argentina'
 GROUP BY product, country
 
 -- 10. Las tablas "market_count" y "super_store_count" representan dos sistemas distintos que usa la empresa para contar la cantidad de gente que ingresa a tienda, uno para las tiendas de Latinoamerica y otro para Europa. Obtener en una unica tabla, las entradas a tienda de ambos sistemas.
-
+SELECT store_id, TO_DATE(CAST(date AS VARCHAR), 'YYYYMMDD'),  traffic
+	FROM stg.market_count
+	Union
+SELECT store_id, TO_DATE(date, 'YYYY-MM-DD'), traffic
+	FROM stg.super_store_count;
 -- 11. Cuales son los productos disponibles para la venta (activos) de la marca Phillips?
 
 -- 12. Obtener el monto vendido por tienda y moneda y ordenarlo de mayor a menor por valor nominal de las ventas (sin importar la moneda).
