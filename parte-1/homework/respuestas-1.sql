@@ -116,6 +116,16 @@ SELECT date, store_id,sum(initial+final/2) as promedio
 	order by date
 
 -- 9. Obtener las ventas netas y el porcentaje de descuento otorgado por producto en Argentina.
+SELECT product, sum(sale-promotion) as ventas_netas, 
+CASE
+           WHEN SUM(sale) = 0 THEN 0  -- Evitar la división por cero
+           ELSE (SUM(promotion) / SUM(sale))*100
+       END AS promotion_to_sales_ratio,
+	   country
+FROM stg.order_line_sale ol
+left join stg.store_master sm on ol.store=sm.store_id
+where country='Argentina'
+GROUP BY product, country
 
 -- 10. Las tablas "market_count" y "super_store_count" representan dos sistemas distintos que usa la empresa para contar la cantidad de gente que ingresa a tienda, uno para las tiendas de Latinoamerica y otro para Europa. Obtener en una unica tabla, las entradas a tienda de ambos sistemas.
 
