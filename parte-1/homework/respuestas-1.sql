@@ -69,8 +69,10 @@ SELECT order_number, product, store, date, quantity, sale, promotion, tax, credi
 -- ## Semana 1 - Parte B
 
 -- 1. Cuales son los paises donde la empresa tiene tiendas?
+	SELECT distinct country	FROM stg.store_master;
 
 -- 2. Cuantos productos por subcategoria tiene disponible para la venta?
+SELECT count(distinct subcategory) FROM stg.product_master;
 
 -- 3. Cuales son las ordenes de venta de Argentina de mayor a $100.000?
 
