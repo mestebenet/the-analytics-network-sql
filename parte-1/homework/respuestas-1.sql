@@ -166,6 +166,12 @@ group by product, currency
 order by product;
 -- 14. Cual es la tasa de impuestos que se pago por cada orden de venta?
 
+SELECT order_number, 
+case
+	WHEN tax is null THEN 0  
+        ELSE (tax / (sale)) end as TasaImpuestos
+	FROM stg.order_line_sale
+
 
 -- ## Semana 2 - Parte A
 
