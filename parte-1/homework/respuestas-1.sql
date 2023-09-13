@@ -208,10 +208,11 @@ SELECT sum(sale), subcategory, currency
 	group by subcategory,country, province
 	order by paisProvincia
 -- 5. Mostrar una vista donde sea vea el nombre de tienda y la cantidad de entradas de personas que hubo desde la fecha de apertura para el sistema "super_store".
+Create view entrada_personas as
 SELECT ssc.store_id, sum(traffic)
 	FROM stg.super_store_count ssc
 	left join stg.store_master sm on sm.store_id=ssc.store_id
-	group by ssc.store_id-- 6. Cual es el nivel de inventario promedio en cada mes a nivel de codigo de producto y tienda; mostrar el resultado con el nombre de la tienda.
+	group by ssc.store_id
   
 -- 7. Calcular la cantidad de unidades vendidas por material. Para los productos que no tengan material usar 'Unknown', homogeneizar los textos si es necesario.
   
