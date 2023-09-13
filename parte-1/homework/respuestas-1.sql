@@ -164,6 +164,14 @@ select product, currency,
 from ventas
 group by product, currency
 order by product;
+
+SELECT  product,
+currency,
+sum(sale-coalesce(promotion,0)+Coalesce(tax,0)-Colaesce(credit,0))as  precioneto
+FROM stg.order_line_sale
+group by product, currency
+order by product;
+
 -- 14. Cual es la tasa de impuestos que se pago por cada orden de venta?
 
 SELECT order_number, 
@@ -175,7 +183,6 @@ case
 
 -- ## Semana 2 - Parte A
 
--- 1. Mostrar nombre y codigo de producto, categoria y color para todos los productos de la marca Philips y Samsung, mostrando la leyenda "Unknown" cuando no hay un color disponible
 
 -- 2. Calcular las ventas brutas y los impuestos pagados por pais y provincia en la moneda correspondiente.
 
