@@ -182,16 +182,35 @@ case
 
 
 -- ## Semana 2 - Parte A
-
+-- 1. Mostrar nombre y codigo de producto, categoria y color para todos los productos de la marca Philips y Samsung, mostrando la leyenda "Unknown" cuando no hay un color disponible
+SELECT product_code, name, category, 
+   CASE WHEN color is null then 'Unknown' else color end as Color
+FROM stg.product_master
+where name like '%Samsung%'or name like '%PHILIPS%'
 
 -- 2. Calcular las ventas brutas y los impuestos pagados por pais y provincia en la moneda correspondiente.
+SELECT Sum(sale),sum(tax), currency, country
+	FROM stg.order_line_sale ol
+	left join stg.store_master sm on ol.store=sm.store_id
+	GROUP BY country, currency
 
 -- 3. Calcular las ventas totales por subcategoria de producto para cada moneda ordenados por subcategoria y moneda.
+SELECT sum(sale), subcategory, currency
+	FROM stg.order_line_sale ol
+	left join stg.product_master pm on ol.product=pm.product_code 
+	group by subcategory, currency
   
 -- 4. Calcular las unidades vendidas por subcategoria de producto y la concatenacion de pais, provincia; usar guion como separador y usarla para ordernar el resultado.
-  
+  SELECT sum(sale), subcategory, concat(country, '-', province) PaisProvincia
+	FROM stg.order_line_sale ol
+	left join stg.product_master pm on ol.product=pm.product_code 
+	left join stg.store_master sm on ol.store=sm.store_id
+	group by subcategory,country, province
+	order by paisProvincia
 -- 5. Mostrar una vista donde sea vea el nombre de tienda y la cantidad de entradas de personas que hubo desde la fecha de apertura para el sistema "super_store".
-  
+  SELECT store_id, sum(traffic), 
+	FROM stg.super_store_count ssc
+	group by store_id
 -- 6. Cual es el nivel de inventario promedio en cada mes a nivel de codigo de producto y tienda; mostrar el resultado con el nombre de la tienda.
   
 -- 7. Calcular la cantidad de unidades vendidas por material. Para los productos que no tengan material usar 'Unknown', homogeneizar los textos si es necesario.
