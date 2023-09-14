@@ -219,10 +219,10 @@ SELECT ssc.store_id, sum(traffic)
     CASE
         WHEN material IS NULL THEN 'Unknown'
         ELSE replace (material, 'plastico','PLASTICO')
-    END AS material
+    END AS materialnuevo
 FROM stg.order_line_sale ol
 LEFT JOIN stg.product_master pm ON pm.product_code = ol.product
-GROUP BY material;
+GROUP BY materialnuevo;
 -- 8. Mostrar la tabla order_line_sales agregando una columna que represente el valor de venta bruta en cada linea convertido a dolares usando la tabla de tipo de cambio.
   
 -- 9. Calcular cantidad de ventas totales de la empresa en dolares.
