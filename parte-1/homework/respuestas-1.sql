@@ -224,13 +224,31 @@ FROM stg.order_line_sale ol
 LEFT JOIN stg.product_master pm ON pm.product_code = ol.product
 GROUP BY materialnuevo;
 -- 8. Mostrar la tabla order_line_sales agregando una columna que represente el valor de venta bruta en cada linea convertido a dolares usando la tabla de tipo de cambio.
-  
+  SELECT (sale * fx_rate_usd_peso) as venta_Dolares,
+order_number, product, store, date, quantity, sale, promotion, tax, credit, currency, pos, is_walkout
+FROM stg.order_line_sale ol
+left join stg.monthly_average_fx_rate fx 
+on date_trunc('month',date)=fx.month
+
 -- 9. Calcular cantidad de ventas totales de la empresa en dolares.
-  
+  SELECT sum(sale * fx_rate_usd_peso) as venta_Dolares
+FROM stg.order_line_sale ol
+left join stg.monthly_average_fx_rate fx 
+on date_trunc('month',date)=fx.month
+
 -- 10. Mostrar en la tabla de ventas el margen de venta por cada linea. Siendo margen = (venta - descuento) - costo expresado en dolares.
-  
+  SELECT 
+(sale-coalesce(promotion,0)-product_cost_usd)*fx_rate_usd_peso as margen_Dolares
+FROM stg.order_line_sale ol
+left join stg.cost c on c.product_code=ol.product
+left join stg.monthly_average_fx_rate fx on date_trunc('month',date)=fx.month
+
 -- 11. Calcular la cantidad de items distintos de cada subsubcategoria que se llevan por numero de orden.
   
+SELECT order_number, count(distinct(subcategory))
+FROM stg.order_line_sale ol
+	LEFT JOIN stg.product_master pm ON pm.product_code = ol.product
+	group by order_number
 
 -- ## Semana 2 - Parte B
 
