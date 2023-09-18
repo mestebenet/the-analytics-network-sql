@@ -253,12 +253,32 @@ FROM stg.order_line_sale ol
 -- ## Semana 2 - Parte B
 
 -- 1. Crear un backup de la tabla product_master. Utilizar un esquema llamada "bkp" y agregar un prefijo al nombre de la tabla con la fecha del backup en forma de numero entero.
-  
+  DO $$
+BEGIN
+  EXECUTE 'CREATE SCHEMA IF NOT EXISTS bkp';
+  EXECUTE 'CREATE TABLE IF NOT EXISTS bkp.productmaster'  TO_CHAR(current_date, 'YYYYMMDD')  ' AS TABLE stg.product_master';
+END $$;
 -- 2. Hacer un update a la nueva tabla (creada en el punto anterior) de product_master agregando la leyendo "N/A" para los valores null de material y color. Pueden utilizarse dos sentencias.
-  
+  update bkp.product_master_20230918
+set color= 'N/A'
+where color is null
+
+update bkp.product_master_20230918
+set material= 'N/A'
+where material is null
+
 -- 3. Hacer un update a la tabla del punto anterior, actualizando la columa "is_active", desactivando todos los productos en la subsubcategoria "Control Remoto".
+update bkp.product_master_20230918
+set is_active='false'
+where subsubcategory= 'Control remoto'
   
 -- 4. Agregar una nueva columna a la tabla anterior llamada "is_local" indicando los productos producidos en Argentina y fuera de Argentina.
+alter table bkp.product_master_20230918
+add is_local varchar(255)
+
+UPDATE bkp.product_master_20230918
+SET is_local = CASE WHEN origin = 'Argentina' THEN 'True' ELSE 'False' END;
+
   
 -- 5. Agregar una nueva columna a la tabla de ventas llamada "line_key" que resulte ser la concatenacion de el numero de orden y el codigo de producto.
   
