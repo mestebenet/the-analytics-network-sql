@@ -283,8 +283,22 @@ SET is_local = CASE WHEN origin = 'Argentina' THEN 'True' ELSE 'False' END;
 -- 5. Agregar una nueva columna a la tabla de ventas llamada "line_key" que resulte ser la concatenacion de el numero de orden y el codigo de producto.
   
 -- 6. Crear una tabla llamada "employees" (por el momento vacia) que tenga un id (creado de forma incremental), name, surname, start_date, end_name, phone, country, province, store_id, position. Decidir cual es el tipo de dato mas acorde.
-  
+  CREATE TABLE IF NOT EXISTS stg.employees
+(  
+	id_employees SERIAL PRIMARY KEY,
+    name character varying(255),
+    surname character varying(255),
+    start_date date,
+    end_date date,
+    phone integer,
+    country character varying(255),
+    province character varying(255),
+    store_id character varying(255),
+    position character varying(255)
+   
+)
 -- 7. Insertar nuevos valores a la tabla "employees" para los siguientes 4 empleados:
+insert into stg.employees values (1,'Juan', 'Perez', '2022-01-01', null , 541113869867, 'Argentina', 'Santa Fe', 'tienda 2', 'Vendedor')
     -- Juan Perez, 2022-01-01, telefono +541113869867, Argentina, Santa Fe, tienda 2, Vendedor.
     -- Catalina Garcia, 2022-03-01, Argentina, Buenos Aires, tienda 2, Representante Comercial
     -- Ana Valdez, desde 2020-02-21 hasta 2022-03-01, España, Madrid, tienda 8, Jefe Logistica
