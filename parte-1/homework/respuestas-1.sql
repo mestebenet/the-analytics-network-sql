@@ -281,7 +281,13 @@ SET is_local = CASE WHEN origin = 'Argentina' THEN 'True' ELSE 'False' END;
 
   
 -- 5. Agregar una nueva columna a la tabla de ventas llamada "line_key" que resulte ser la concatenacion de el numero de orden y el codigo de producto.
-  
+ALTER TABLE stg.order_line_sale 
+ADD column line_key varchar(255)
+
+UPDATE stg.order_line_sale 
+SET line_key = order_number||'-'||product
+
+	
 -- 6. Crear una tabla llamada "employees" (por el momento vacia) que tenga un id (creado de forma incremental), name, surname, start_date, end_name, phone, country, province, store_id, position. Decidir cual es el tipo de dato mas acorde.
   CREATE TABLE IF NOT EXISTS stg.employees
 (  
@@ -314,3 +320,7 @@ ALTER TABLE bkp.cost
 ADD COLUMN last_updated_ts DATE DEFAULT current_date;
   
 -- 9. En caso de hacer un cambio que deba revertirse en la tabla "order_line_sale" y debemos volver la tabla a su estado original, como lo harias?
+"BEGIN" se usa para iniciar una transacción en una base de datos, y "ROLLBACK" se usa para deshacer una transacción en caso de error
+o cuando se necesita cancelar una serie de operaciones realizadas dentro de la transacción. 
+Ambas sentencias son esenciales para garantizar la integridad y consistencia de los datos en una base de datos 
+en entornos donde se requiere control transaccional.
