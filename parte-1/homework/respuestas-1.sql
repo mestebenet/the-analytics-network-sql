@@ -285,12 +285,12 @@ SET is_local = CASE WHEN origin = 'Argentina' THEN 'True' ELSE 'False' END;
 -- 6. Crear una tabla llamada "employees" (por el momento vacia) que tenga un id (creado de forma incremental), name, surname, start_date, end_name, phone, country, province, store_id, position. Decidir cual es el tipo de dato mas acorde.
   CREATE TABLE IF NOT EXISTS stg.employees
 (  
-	id_employees SERIAL PRIMARY KEY,
+	id_employees SERIAL not null PRIMARY KEY,
     name character varying(255),
     surname character varying(255),
     start_date date,
     end_date date,
-    phone integer,
+    phone character varying(255),
     country character varying(255),
     province character varying(255),
     store_id character varying(255),
@@ -298,13 +298,19 @@ SET is_local = CASE WHEN origin = 'Argentina' THEN 'True' ELSE 'False' END;
    
 )
 -- 7. Insertar nuevos valores a la tabla "employees" para los siguientes 4 empleados:
+	  
 insert into stg.employees values (1,'Juan', 'Perez', '2022-01-01', null , 541113869867, 'Argentina', 'Santa Fe', 'tienda 2', 'Vendedor')
-    -- Juan Perez, 2022-01-01, telefono +541113869867, Argentina, Santa Fe, tienda 2, Vendedor.
-    -- Catalina Garcia, 2022-03-01, Argentina, Buenos Aires, tienda 2, Representante Comercial
-    -- Ana Valdez, desde 2020-02-21 hasta 2022-03-01, España, Madrid, tienda 8, Jefe Logistica
-    -- Fernando Moralez, 2022-04-04, España, Valencia, tienda 9, Vendedor.
+insert into stg.employees values (default, 'Catalina', 'Garcia', '2022-03-01', current_date, null,  'Argentina', 'Buenos Aires', 'tienda 2', 'Representante Comercial')
+insert into stg.employees values (default, 'Ana', 'Valdez', '2020-02-21', '2022-03-01', null, 'España', 'Madrid', 'tienda 8', 'Jefe Logistica');
+insert into stg.employees values (default,'Fernando', 'Moralez', '2022-04-04', current_date,null ,'España', 'Valencia', 'tienda 9', 'Vendedor')
 
+   
   
 -- 8. Crear un backup de la tabla "cost" agregandole una columna que se llame "last_updated_ts" que sea el momento exacto en el cual estemos realizando el backup en formato datetime.
+select * into bkp.cost
+   from stg.cost;
+    
+ALTER TABLE bkp.cost
+ADD COLUMN last_updated_ts DATE DEFAULT current_date;
   
 -- 9. En caso de hacer un cambio que deba revertirse en la tabla "order_line_sale" y debemos volver la tabla a su estado original, como lo harias?
