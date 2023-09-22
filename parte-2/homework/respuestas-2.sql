@@ -9,10 +9,36 @@
 -- 3. Crear una vista con el resultado del ejercicio del ejercicio de la Parte 1 donde calculamos el margen bruto en dolares. Agregarle la columna de ventas, promociones, creditos, impuestos y el costo en dolares para poder reutilizarla en un futuro. Responder con el codigo de creacion de la vista.
 -- El nombre de la vista es stg.vw_order_line_sale_usd
 -- Los nombres de las nuevas columnas son sale_usd, promotion_usd, credit_usd, tax_usd, y line_cost_usd
+create view stg.vw_order_line_sale_usd as 
+with Valores_en_dolares as (
+ select
+ order_number,
+ sale*fx_rate_usd_peso as Sale_en_dolares,
+ coalesce(promotion,0)*fx_rate_usd_peso as Promotion_en_dolares,
+ coalesce(credit,0)*fx_rate_usd_peso as Creditos_en_dolares,
+ coalesce(tax,0)*fx_rate_usd_peso as Tax_en_dolares,
+ product_cost_usd*fx_rate_usd_peso as Costo_en_dolares
+ FROM stg.order_line_sale ol
+left join stg.cost c on c.product_code=ol.product
+left join stg.monthly_average_fx_rate fx on date_trunc('month',date)=fx.month
+)
+
+ Select order_number,
+(Sale_en_dolares-Promotion_en_dolares-Creditos_en_dolares-Costo_en_dolares)as MargenBruto_en_dolares
+ from Valores_en_dolares
 
 -- 4. Generar una query que me sirva para verificar que el nivel de agregacion de la tabla de ventas (y de la vista) no se haya afectado. Recordas que es el nivel de agregacion/detalle? Lo vimos en la teoria de la parte 1! Nota: La orden M202307319089 parece tener un problema verdad? Lo vamos a solucionar mas adelante.
+select order_number, product
+	,count(1)
+	from stg.order_line_sale
+	group by order_number, product
+	having count(1)>1
 
 -- 5. Calcular el margen bruto a nivel Subcategoria de producto. Usar la vista creada stg.vw_order_line_sale_usd. La columna de margen se llama margin_usd
+select subcategory, sum(margin_usd) as margin_usd
+from stg.vw_order_line_sale_usd olsu
+left join stg.product_master pm on olsu.product=pm.Product_code  
+group by  subcategory
 
 -- 6. Calcular la contribucion de las ventas brutas de cada producto al total de la orden.
 
