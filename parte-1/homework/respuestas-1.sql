@@ -374,5 +374,10 @@ set last_updated_ts = current_date
 select *
 from bkp.cost_bis
 
--- 9. En caso de hacer un cambio que deba revertirse en la tabla "order_line_sale" y debemos volver la tabla a su estado original, como lo harias?
--- Haría la copia de back up en otra tabla y aplicaría el cambio necesario en la tabla original. En caso de querer revertirlo, vaciaría los datos de la tabla original y le insertaría los del back up.
+-- 9. En caso de hacer un cambio que deba revertirse en la tabla order_line_sale y debemos volver la tabla a su estado original, como lo harias? Responder con palabras que sentencia utilizarias. (no hace falta usar codigo)
+-- Seguiría los siguientes pasos:
+-- 1) Aplicaría el comando BEGIN: Esto inicia una transacción en PostgreSQL. A partir de este punto, todas las operaciones que realices no se aplicarán de inmediato a la base de datos.
+-- 2) Realizaría las operaciones de cambio necesarias.
+-- 3) Revisaría que los datos estén correctos.
+-- 4) a) Confirmar que la transacción está bien con el comando COMMIT. Esto guardará todos los cambios realizados en la transacción.
+--    b) Si en algún momento durante la transacción veo que algo salió mal o necesito detener la reversión, utilizo el comando ROLLBACK en lugar de COMMIT para revertirlo.
