@@ -24,6 +24,32 @@ group by store_id, date
 order by date, store_id)
 
 -- 2. Recibimos otro archivo con ingresos a tiendas de meses anteriores. Subir el archivo a stg.super_store_count_aug y agregarlo a la vista del ejercicio anterior. Cual hubiese sido la diferencia si hubiesemos tenido una tabla? (contestar la ultima pregunta con un texto escrito en forma de comentario)
+create view stg.vw_store_traffic as (
+
+with trafico as (
+select store_id, 
+TO_DATE(TO_CHAR(date, '99999999'), 'YYYYMMDD') AS date,
+traffic
+from stg.market_count
+union all
+select store_id,
+TO_DATE(date, 'YYYY-MM-DD') AS date,
+traffic
+from  stg.super_store_count
+union all
+select store_id,
+TO_DATE(date, 'YYYY-MM-DD') AS date,
+traffic
+from  stg.super_store_count_aug
+	
+)
+
+select store_id, date, sum(traffic)
+from trafico
+group by store_id, date
+order by date, store_id
+	)
+	
 
 -- 3. Crear una vista con el resultado del ejercicio del ejercicio de la Parte 1 donde calculamos el margen bruto en dolares. Agregarle la columna de ventas, promociones, creditos, impuestos y el costo en dolares para poder reutilizarla en un futuro. Responder con el codigo de creacion de la vista.
 -- El nombre de la vista es stg.vw_order_line_sale_usd
