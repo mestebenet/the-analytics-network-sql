@@ -239,7 +239,7 @@ case
 	end as ventas_usd
 from stg.order_line_sale as ols
 left join stg.monthly_average_fx_rate as fx
-on ols.date = fx.month
+on date_trunc('month',ols.date) = fx.month
 
 
 -- 9. Calcular cantidad de ventas totales de la empresa en dolares.
@@ -256,7 +256,7 @@ select *,
 	end as ventas_usd
 from stg.order_line_sale as ols
 left join stg.monthly_average_fx_rate as fx
-on ols.date = fx.month
+on date_trunc('month',ols.date) = fx.month
 )
 
 select sum (ventas_usd)
@@ -276,7 +276,7 @@ select ols.*,
 	
 from stg.order_line_sale as ols
 left join stg.monthly_average_fx_rate as fx
-on ols.date = fx.month
+on date_trunc('month',ols.date) = fx.month
 left join stg.cost as c
 on c.product_code = ols.product
 
