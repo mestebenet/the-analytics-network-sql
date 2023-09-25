@@ -100,6 +100,48 @@ SELECT ols.order_number, product, sum(sale),(sum(sale)/ventas_por_orden) partici
 	group by ols.order_number, product, ventas_por_orden
 
 -- 7. Calcular las ventas por proveedor, para eso cargar la tabla de proveedores por producto. Agregar el nombre el proveedor en la vista del punto stg.vw_order_line_sale_usd. El nombre de la nueva tabla es stg.suppliers
+Observación: esta tabla no  tiene clave primaria. Deberiamos crearle un indice?.
+--Cargar Tabla de proveedores
+CREATE TABLE IF NOT EXISTS stg.suppliers
+(
+    product_id character varying(255) COLLATE pg_catalog."default" NOT NULL,
+    name character varying(255) COLLATE pg_catalog."default",
+    is_primary boolean
+ );
+--Calcular ventas por proveedor
+Select
+s.name,
+sum(sale),
+from stg.suppliers s
+left join stg.order_line_sale ols on s.product_id=ols.product 
+group by s.name;
+
+--Nueva Vista 
+CREATE OR REPLACE VIEW stg.vw_order_line_sale_usd
+ AS
+ WITH valores_en_dolares AS (
+         SELECT ol.order_number,
+            ol.product,
+            ol.sale * fx.fx_rate_usd_peso AS sale_en_dolares,
+            COALESCE(ol.promotion, 0::numeric) * fx.fx_rate_usd_peso AS promotion_en_dolares,
+            COALESCE(ol.credit, 0::numeric) * fx.fx_rate_usd_peso AS creditos_en_dolares,
+            COALESCE(ol.tax, 0::numeric) * fx.fx_rate_usd_peso AS tax_en_dolares,
+            c.product_cost_usd * fx.fx_rate_usd_peso AS costo_en_dolares
+	 		
+           FROM stg.order_line_sale ol
+             LEFT JOIN stg.cost c ON c.product_code::text = ol.product::text
+             LEFT JOIN stg.monthly_average_fx_rate fx ON date_trunc('month'::text, ol.date::timestamp with time zone) = fx.month
+			
+ )
+ SELECT vd.order_number,
+    vd.product,
+    vd.sale_en_dolares - vd.promotion_en_dolares - vd.creditos_en_dolares - vd.costo_en_dolares AS margin_usd,
+    s.name as proveedor
+	from valores_en_dolares vd
+	left join stg.suppliers s on s.product_id=vd.product 
+
+  
+
 
 -- 8. Verificar que el nivel de detalle de la vista stg.vw_order_line_sale_usd no se haya modificado, en caso contrario que se deberia ajustar? Que decision tomarias para que no se genereren duplicados?
     -- - Se pide correr la query de validacion.
