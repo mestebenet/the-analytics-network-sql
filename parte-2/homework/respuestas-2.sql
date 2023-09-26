@@ -184,10 +184,26 @@ WITH valores_en_dolares AS (
 
 -- 1. Calcular el porcentaje de valores null de la tabla stg.order_line_sale para la columna creditos y descuentos. (porcentaje de nulls en cada columna)
 
+SELECT 
+ sum(case when promotion is null then 1 else 0 end) as promotion_null,
+ sum(case when credit is null then 1 else 0 end) as credit_null,
+ count(order_number) as Total,
+ (sum(case when credit is null then 1.0 else 0 end))/count(order_number)*100 as porcent_cred_null
+	FROM stg.order_line_sale
+
 -- 2. La columna is_walkout se refiere a los clientes que llegaron a la tienda y se fueron con el producto en la mano (es decia habia stock disponible). Responder en una misma query:
    --  - Cuantas ordenes fueron walkout por tienda?
    --  - Cuantas ventas brutas en USD fueron walkout por tienda?
    --  - Cual es el porcentaje de las ventas brutas walkout sobre el total de ventas brutas por tienda?
+
+SELECT store,
+	sum(case when is_walkout='true' then 1 else 0 end) as cant_walkout,
+	sum( case when is_walkout='true' then sale else 0 end) as ventas_Walkout,
+	sum(sale) as ventas_totales,
+	(sum(case when is_walkout='true' then sale else 0 end))/sum(sale) as porcentaje
+		FROM stg.order_line_sale
+		group by store
+		order by store
 
 -- 3. Siguiendo el nivel de detalle de la tabla ventas, hay una orden que no parece cumplirlo. Como identificarias duplicados utilizando una windows function? 
 -- Tenes que generar una forma de excluir los casos duplicados, para este caso particular y a nivel general, si llegan mas ordenes con duplicaciones.
