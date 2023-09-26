@@ -212,6 +212,29 @@ SELECT store,
 
 -- 4. Obtener las ventas totales en USD de productos que NO sean de la categoria TV NI esten en tiendas de Argentina. Modificar la vista stg.vw_order_line_sale_usd con todas las columnas necesarias. 
 
+--Modificar vista, agregando columnas necesarias. 
+Create view stg.vw_order_line_sale_usd as(
+ WITH valores_en_dolares AS (
+         SELECT ol.order_number,
+            ol.product,
+            ol.sale * fx.fx_rate_usd_peso AS sale_en_dolares,
+            COALESCE(ol.promotion, 0::numeric) * fx.fx_rate_usd_peso AS promotion_en_dolares,
+            COALESCE(ol.credit, 0::numeric) * fx.fx_rate_usd_peso AS creditos_en_dolares,
+            COALESCE(ol.tax, 0::numeric) * fx.fx_rate_usd_peso AS tax_en_dolares,
+            c.product_cost_usd * fx.fx_rate_usd_peso AS costo_en_dolares
+           FROM stg.order_line_sale ol
+             LEFT JOIN stg.cost c ON c.product_code::text = ol.product::text
+             LEFT JOIN stg.monthly_average_fx_rate fx ON date_trunc('month'::text, ol.date::timestamp with time zone) = fx.month
+        )
+ SELECT vd.order_number,
+    vd.product,
+	vd.sale_en_dolares,
+    vd.sale_en_dolares - vd.promotion_en_dolares - vd.creditos_en_dolares - vd.costo_en_dolares AS margin_usd,
+    s.name AS proveedor
+   FROM valores_en_dolares vd
+     LEFT JOIN stg.suppliers s ON s.product_id::text = vd.product::text)
+
+--Obtener ventas totales: 
 -- 5. El gerente de ventas quiere ver el total de unidades vendidas por dia junto con otra columna con la cantidad de unidades vendidas una semana atras y la diferencia entre ambos.Diferencia entre las ventas mas recientes y las mas antiguas para tratar de entender un crecimiento.
 
 -- 6. Crear una vista de inventario con la cantidad de inventario promedio por dia, tienda y producto, que ademas va a contar con los siguientes datos:
