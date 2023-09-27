@@ -328,6 +328,37 @@ sum(quantity) as suma_por_dia
     - El nivel de agregacion es dia/tienda/sku.
     - El Promedio diario Unidades vendidas ultimos 7 dias tiene que calcularse para cada dia.
 */
+
+with inventario as(
+Select 
+i.date,
+i.item_id as product_code,
+pm.name as product_name,
+pm.category,
+pm.subcategory,
+pm.subsubcategory,
+i.store_id as Tienda,
+sm.country,
+sm.name as store_name,
+avg(i.initial+i.final/2) as avg_inventory
+
+from stg.inventory i
+left join  stg.product_master pm on i.item_id=pm.product_code
+left join stg.store_master sm on i.store_id=sm.store_id
+left join stg.cost c on i.item_id=c.product_code
+group by i.date, i.store_id, i.item_id,
+pm.name,
+pm.category,
+pm.subcategory,
+pm.subsubcategory,
+sm.country,
+sm.name
+)
+Select inv.*,
+(avg_inventory* product_cost_usd) as inventory_cost
+from inventario inv
+left join stg.cost c on inv.product_code=c.product_code
+
         
 
 -- ## Semana 4 - Parte A
