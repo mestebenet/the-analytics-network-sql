@@ -207,8 +207,54 @@ SELECT store,
 
 -- 3. Siguiendo el nivel de detalle de la tabla ventas, hay una orden que no parece cumplirlo. Como identificarias duplicados utilizando una windows function? 
 -- Tenes que generar una forma de excluir los casos duplicados, para este caso particular y a nivel general, si llegan mas ordenes con duplicaciones.
+with stg_sales as(
+Select 
+order_number,
+product,
+row_number() over(partition by order_number, product order by product asc) as rn
+FROM stg.order_line_sale
+	)
+select *  
+from stg_sales
+where rn=1
+	
 -- Identificar los duplicados.
+with stg_sales as(
+Select 
+order_number,
+product,
+row_number() over(partition by order_number, product order by product asc) as rn
+FROM stg.order_line_sale
+	)
+select *  
+from stg_sales
+where rn!=1
 -- Eliminar las filas duplicadas. Podes usar BEGIN transaction y luego rollback o commit para verificar que se haya hecho correctamente.
+BEGIN;
+
+WITH stg_sales AS (
+  SELECT 
+    order_number,
+    product,
+    ROW_NUMBER() OVER (PARTITION BY order_number, product ORDER BY product ASC) AS rn
+  FROM stg.order_line_sale
+)
+
+-- Supongamos que deseas eliminar la fila duplicada con rn != 1
+DELETE FROM stg.order_line_sale
+WHERE (order_number, product) IN (
+  SELECT order_number, product
+  FROM stg_sales
+  WHERE rn != 1
+);
+
+-- Decide si deseas confirmar o revertir la transacción
+-- Si estás seguro de que deseas eliminar la fila, utiliza COMMIT
+--COMMIT;
+
+-- Si deseas revertir los cambios, utiliza ROLLBACK
+-- ROLLBACK;
+
 
 -- 4. Obtener las ventas totales en USD de productos que NO sean de la categoria TV NI esten en tiendas de Argentina. Modificar la vista stg.vw_order_line_sale_usd con todas las columnas necesarias. 
 
