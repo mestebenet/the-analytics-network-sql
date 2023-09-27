@@ -301,6 +301,20 @@ FROM stg.vw_order_line_sale_usd
 
 -- 5. El gerente de ventas quiere ver el total de unidades vendidas por dia junto con otra columna con la cantidad de unidades vendidas una semana atras y la diferencia entre ambos.Diferencia entre las ventas mas recientes y las mas antiguas para tratar de entender un crecimiento.
 
+with Total_por_dia as(
+Select 
+date,
+sum(quantity) as suma_por_dia
+	FROM stg.order_line_sale
+	group by date
+	order by  date
+	)
+	
+	Select *,
+	lAg(suma_por_dia,7)over ( order by date asc) venta_7_dias_anteriores,
+	suma_por_dia-(lAg(suma_por_dia,7)over ( order by date asc)) Diferencia
+	from Total_por_dia
+
 -- 6. Crear una vista de inventario con la cantidad de inventario promedio por dia, tienda y producto, que ademas va a contar con los siguientes datos:
 /* - Nombre y categorias de producto: `product_name`, `category`, `subcategory`, `subsubcategory`
 - Pais y nombre de tienda: `country`, `store_name`
