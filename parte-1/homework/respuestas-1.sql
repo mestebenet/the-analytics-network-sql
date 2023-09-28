@@ -118,12 +118,14 @@ from stg.order_line_sale
 group by store
 
 -- 8. Cual es el inventario promedio por dia que tiene cada tienda?
-select store_id, date, avg (initial-final) 
+select store_id, date, ((sum(initial)+sum(final))/2)/count(item_id) 
 from stg.inventory
 group by store_id, date
 order by store_id, date
 
-select store_id, date, avg (initial) - avg (final) 
+-- otra opción con el mismo resultado
+	
+select store_id, date, avg ((initial+final)/2) 
 from stg.inventory
 group by store_id, date
 order by store_id, date
@@ -206,7 +208,7 @@ group by sm.name
 order by sm.name
 
 -- 6. Cual es el nivel de inventario promedio en cada mes a nivel de codigo de producto y tienda; mostrar el resultado con el nombre de la tienda.
-select i.store_id, sm.name, i.item_id, to_char(i.date,'Mon') as mes, (avg(initial-final)) as inventario
+select i.store_id, sm.name, i.item_id, to_char(i.date,'Mon') as mes, (avg((initial+final)/2)) as inventario
 from stg.inventory as i
 left join stg.store_master as sm
 on sm.store_id = i.store_id 
