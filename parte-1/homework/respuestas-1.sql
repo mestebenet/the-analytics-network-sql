@@ -110,7 +110,7 @@ FROM stg.order_line_sale ol
 GROUP BY store;
 
 -- 8. Cual es el inventario promedio por dia que tiene cada tienda?
-SELECT date, store_id,sum(initial+final/2) as promedio
+SELECT date, store_id,avg(initial+final/2) as promedio
 	FROM stg.inventory
 	group by date, store_id
 	order by date
@@ -224,14 +224,14 @@ FROM stg.order_line_sale ol
 LEFT JOIN stg.product_master pm ON pm.product_code = ol.product
 GROUP BY materialnuevo;
 -- 8. Mostrar la tabla order_line_sales agregando una columna que represente el valor de venta bruta en cada linea convertido a dolares usando la tabla de tipo de cambio.
-  SELECT (sale * fx_rate_usd_peso) as venta_Dolares,
+  SELECT (sale / fx_rate_usd_peso) as venta_Dolares,
 order_number, product, store, date, quantity, sale, promotion, tax, credit, currency, pos, is_walkout
 FROM stg.order_line_sale ol
 left join stg.monthly_average_fx_rate fx 
 on date_trunc('month',date)=fx.month
 
 -- 9. Calcular cantidad de ventas totales de la empresa en dolares.
-  SELECT sum(sale * fx_rate_usd_peso) as venta_Dolares
+  SELECT sum(sale / fx_rate_usd_peso) as venta_Dolares
 FROM stg.order_line_sale ol
 left join stg.monthly_average_fx_rate fx 
 on date_trunc('month',date)=fx.month
