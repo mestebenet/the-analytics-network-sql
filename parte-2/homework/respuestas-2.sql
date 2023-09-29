@@ -58,11 +58,11 @@ create view stg.vw_order_line_sale_usd as
 with Valores_en_dolares as (
  select
  order_number,
- sale*fx_rate_usd_peso as Sale_en_dolares,
- coalesce(promotion,0)*fx_rate_usd_peso as Promotion_en_dolares,
- coalesce(credit,0)*fx_rate_usd_peso as Creditos_en_dolares,
- coalesce(tax,0)*fx_rate_usd_peso as Tax_en_dolares,
- product_cost_usd*fx_rate_usd_peso as Costo_en_dolares
+ sale/fx_rate_usd_peso as Sale_en_dolares,
+ coalesce(promotion,0)/fx_rate_usd_peso as Promotion_en_dolares,
+ coalesce(credit,0)/fx_rate_usd_peso as Creditos_en_dolares,
+ coalesce(tax,0)/fx_rate_usd_peso as Tax_en_dolares,
+ product_cost_usd/fx_rate_usd_peso as Costo_en_dolares
  FROM stg.order_line_sale ol
 left join stg.cost c on c.product_code=ol.product
 left join stg.monthly_average_fx_rate fx on date_trunc('month',date)=fx.month
@@ -122,11 +122,11 @@ CREATE OR REPLACE VIEW stg.vw_order_line_sale_usd
  WITH valores_en_dolares AS (
          SELECT ol.order_number,
             ol.product,
-            ol.sale * fx.fx_rate_usd_peso AS sale_en_dolares,
-            COALESCE(ol.promotion, 0::numeric) * fx.fx_rate_usd_peso AS promotion_en_dolares,
-            COALESCE(ol.credit, 0::numeric) * fx.fx_rate_usd_peso AS creditos_en_dolares,
-            COALESCE(ol.tax, 0::numeric) * fx.fx_rate_usd_peso AS tax_en_dolares,
-            c.product_cost_usd * fx.fx_rate_usd_peso AS costo_en_dolares
+            ol.sale / fx.fx_rate_usd_peso AS sale_en_dolares,
+            COALESCE(ol.promotion, 0::numeric) / fx.fx_rate_usd_peso AS promotion_en_dolares,
+            COALESCE(ol.credit, 0::numeric) /fx.fx_rate_usd_peso AS creditos_en_dolares,
+            COALESCE(ol.tax, 0::numeric) / fx.fx_rate_usd_peso AS tax_en_dolares,
+            c.product_cost_usd / fx.fx_rate_usd_peso AS costo_en_dolares
 	 		
            FROM stg.order_line_sale ol
              LEFT JOIN stg.cost c ON c.product_code::text = ol.product::text
@@ -161,11 +161,11 @@ CREATE OR REPLACE VIEW stg.vw_order_line_sale_usd
 WITH valores_en_dolares AS (
  SELECT ol.order_number,
             ol.product,
-            ol.sale * fx.fx_rate_usd_peso AS sale_en_dolares,
-            COALESCE(ol.promotion, 0::numeric) * fx.fx_rate_usd_peso AS promotion_en_dolares,
-            COALESCE(ol.credit, 0::numeric) * fx.fx_rate_usd_peso AS creditos_en_dolares,
-            COALESCE(ol.tax, 0::numeric) * fx.fx_rate_usd_peso AS tax_en_dolares,
-            c.product_cost_usd * fx.fx_rate_usd_peso AS costo_en_dolares
+            ol.sale / fx.fx_rate_usd_peso AS sale_en_dolares,
+            COALESCE(ol.promotion, 0::numeric) / fx.fx_rate_usd_peso AS promotion_en_dolares,
+            COALESCE(ol.credit, 0::numeric) / fx.fx_rate_usd_peso AS creditos_en_dolares,
+            COALESCE(ol.tax, 0::numeric) / fx.fx_rate_usd_peso AS tax_en_dolares,
+            c.product_cost_usd / fx.fx_rate_usd_peso AS costo_en_dolares
 	 		
            FROM stg.order_line_sale ol
              LEFT JOIN stg.cost c ON c.product_code::text = ol.product::text
@@ -265,10 +265,10 @@ create VIEW  stg.vw_order_line_sale_usd as
 SELECT ol.order_number,
             ol.product,
             ol.sale * fx.fx_rate_usd_peso AS sale_en_dolares,
-            COALESCE(ol.promotion, 0::numeric) * fx.fx_rate_usd_peso AS promotion_en_dolares,
-            COALESCE(ol.credit, 0::numeric) * fx.fx_rate_usd_peso AS creditos_en_dolares,
-            COALESCE(ol.tax, 0::numeric) * fx.fx_rate_usd_peso AS tax_en_dolares,
-            c.product_cost_usd * fx.fx_rate_usd_peso AS costo_en_dolares,
+            COALESCE(ol.promotion, 0::numeric) / fx.fx_rate_usd_peso AS promotion_en_dolares,
+            COALESCE(ol.credit, 0::numeric) / fx.fx_rate_usd_peso AS creditos_en_dolares,
+            COALESCE(ol.tax, 0::numeric) / fx.fx_rate_usd_peso AS tax_en_dolares,
+            c.product_cost_usd / fx.fx_rate_usd_peso AS costo_en_dolares,
 			ol.store as store,
 			sm.country as country,
 			pm.subcategory as subcategoria_producto
