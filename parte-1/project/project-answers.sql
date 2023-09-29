@@ -40,12 +40,14 @@ left join stg.monthly_average_fx_rate fx on date_trunc('month',date)=fx.month
 	left join stg.product_master pm on pm.product_code=ol.product
 )
  select 
+ mes_y_anio,
  category,
  sum(Sale_en_dolares-Costo_en_dolares-Promotion_en_dolares-Creditos_en_dolares-Tax_en_dolares)as margin_usd
  from Valores_en_dolares
- group by category;
+ group by mes_y_anio,category
 
 -- - ROI por categoria de producto. ROI = ventas netas / Valor promedio de inventario (USD)
+
 
 -- - AOV (Average order value), valor promedio de la orden. (USD)
 
