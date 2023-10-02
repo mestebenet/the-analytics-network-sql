@@ -152,8 +152,36 @@ ORDER BY i.mes_y_anio, store_id;
 -- - Costo del stock de productos que no se vendieron por tienda
 
 -- - Cantidad y costo de devoluciones
+WITH devoluciones AS (
+    	SELECT
+        to_char(date, 'YYYY-MM') AS mes_y_anio,
+        itemcharacter,
+        sum(quantity) as quantity_sum
+	FROM stg.returns r
+	GROUP BY mes_y_anio, itemcharacter
+	order by mes_y_anio, itemcharacter
+)
+SELECT 
+    mes_y_anio,
+	itemcharacter,
+	quantity_sum,
+	(quantity_sum*product_cost_usd)as returned_sales_usd
+FROM devoluciones d
+left join stg.cost c on d.itemcharacter=c.product_code
+ORDER BY mes_y_anio,itemcharacter
 
 
 -- Tiendas
 -- - Ratio de conversion. Cantidad de ordenes generadas / Cantidad de gente que entra
+
+select 
+	to_char(s.date, 'YYYY-MM') AS mes_y_anio , 
+	(count(distinct order_number))/sum(traffic*1.00) as cvr
+from stg.order_line_sale s
+left join stg.vw_store_traffic t
+on s.store = t.store_id
+and s.date = t.date
+group by 
+	mes_y_anio
+
 
