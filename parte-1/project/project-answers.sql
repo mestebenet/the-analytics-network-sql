@@ -92,12 +92,62 @@ With ventas_netas as (
 -- - Cantidad de creditos otorgados
 
 Select count(credit) as credit_usd
-	FROM stg.order_line_sale
+	FROM stg.order_line_sale; 
+
+WITH creditos AS (
+    SELECT
+        to_char(date, 'YYYY-MM') AS mes_y_anio,
+        SUM(credit) AS creditos
+    FROM stg.order_line_sale
+    GROUP BY mes_y_anio
+)
+SELECT 
+    c.mes_y_anio,
+    (creditos / fx_rate_usd_peso) as credit_usd
+FROM creditos c
+LEFT JOIN stg.monthly_average_fx_rate fx ON 
+    to_date(c.mes_y_anio || '-01', 'YYYY-MM-DD') = fx.month
+ORDER BY c.mes_y_anio;
 
 -- - Valor pagado final por order de linea. Valor pagado: Venta - descuento + impuesto - credito
+WITH creditos AS (
+    SELECT
+        to_char(date, 'YYYY-MM') AS mes_y_anio,
+        SUM(sale-promotion+tax-credit) AS Valor_Pagado
+    FROM stg.order_line_sale
+    GROUP BY mes_y_anio
+)
+SELECT 
+    c.mes_y_anio,
+    (Valor_Pagado / fx_rate_usd_peso) as amount_paid_usd
+FROM creditos c
+LEFT JOIN stg.monthly_average_fx_rate fx ON 
+    to_date(c.mes_y_anio || '-01', 'YYYY-MM-DD') = fx.month
+ORDER BY c.mes_y_anio;
+
 
 -- Supply Chain (USD)
+
+
+
 -- - Costo de inventario promedio por tienda
+WITH inventario AS (
+    SELECT
+        to_char(date, 'YYYY-MM') AS mes_y_anio,
+        item_id,
+        store_id,
+        (avg((initial+final)/2)) as inventory_Promedio
+    FROM stg.inventory
+    GROUP BY mes_y_anio, item_id, store_id
+)
+SELECT 
+    i.mes_y_anio,
+    store_id,
+    SUM(inventory_promedio * product_cost_usd) as inventory_cost_usd
+FROM inventario i
+LEFT JOIN stg.cost c ON c.product_code = i.item_id
+GROUP BY i.mes_y_anio, store_id
+ORDER BY i.mes_y_anio, store_id;
 
 -- - Costo del stock de productos que no se vendieron por tienda
 
