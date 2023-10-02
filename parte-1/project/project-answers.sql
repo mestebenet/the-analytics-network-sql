@@ -66,9 +66,33 @@ and s.date = inv.date
 -- Contabilidad (USD)
 -- - Impuestos pagados
 
+Select 
+	to_char(s.date, 'YYYY-MM') AS mes_y_anio,
+	sum(tax/fx_rate_usd_peso) as tax_usd
+	FROM stg.order_line_sale s
+	left join stg.monthly_average_fx_rate fx on date_trunc('month',s.date)=fx.month
+	group by to_char(date, 'YYYY-MM')
+	order by to_char(date, 'YYYY-MM')
+
 -- - Tasa de impuesto. Impuestos / Ventas netas 
+With ventas_netas as (
+		Select
+		to_char(date, 'YYYY-MM') AS mes_y_anio,
+		sum(sale-coalesce(promotion,0)-coalesce(credit,0)) as ventas_netas,
+		sum(tax) as tax
+		FROM stg.order_line_sale
+		group by mes_y_anio
+			)
+		Select 
+	mes_y_anio,
+	(tax/ventas_netas) as tax_rate
+	FROM ventas_netas vn
+	order by mes_y_anio
 
 -- - Cantidad de creditos otorgados
+
+Select count(credit) as credit_usd
+	FROM stg.order_line_sale
 
 -- - Valor pagado final por order de linea. Valor pagado: Venta - descuento + impuesto - credito
 
