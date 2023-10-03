@@ -334,14 +334,14 @@ Select
 i.date,
 i.item_id as product_code,
 pm.name as product_name,
-pm.category,
-pm.subcategory,
-pm.subsubcategory,
+category,
+subcategory,
+subsubcategory,
 i.store_id as Tienda,
 sm.country,
 sm.name as store_name,
-avg(i.initial+i.final/2) as avg_inventory
-
+avg(i.initial+i.final/2) as avg_inventory,
+ROW_NUMBER() OVER (PARTITION BY i.item_id, i.store_id ORDER BY date DESC) AS rn
 from stg.inventory i
 left join  stg.product_master pm on i.item_id=pm.product_code
 left join stg.store_master sm on i.store_id=sm.store_id
@@ -355,9 +355,19 @@ sm.country,
 sm.name
 )
 Select inv.*,
-(avg_inventory* product_cost_usd) as inventory_cost
+inv.date,
+product_name,
+category,
+subcategory,
+subsubcategory,
+country,
+store_name,
+avg_inventory,
+(avg_inventory* product_cost_usd) as inventory_cost,
+CASE WHEN rn = 1 THEN TRUE ELSE FALSE END AS is_last_snapshot
 from inventario inv
 left join stg.cost c on inv.product_code=c.product_code
+
 
         
 
