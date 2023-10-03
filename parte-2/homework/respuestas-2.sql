@@ -354,7 +354,7 @@ pm.subsubcategory,
 sm.country,
 sm.name
 )
-Select inv.*,
+Select 
 inv.date,
 product_name,
 category,
