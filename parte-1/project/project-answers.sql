@@ -183,7 +183,7 @@ LEFT JOIN stg.cost c ON c.product_code = i.item_id
 GROUP BY i.mes_y_anio, store_id
 ORDER BY i.mes_y_anio, store_id;
 
--- - Costo del stock de productos que no se vendieron por tienda
+-- - Costo del stock de productos que no se vendieron por tienda 
 
 -- - Cantidad y costo de devoluciones
 WITH devoluciones AS (
