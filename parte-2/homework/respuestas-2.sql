@@ -354,8 +354,9 @@ pm.subsubcategory,
 sm.country,
 sm.name
 )
-Select 
+Select
 inv.date,
+store_name,
 product_name,
 category,
 subcategory,
@@ -364,10 +365,18 @@ country,
 store_name,
 avg_inventory,
 (avg_inventory* product_cost_usd) as inventory_cost,
-CASE WHEN rn = 1 THEN TRUE ELSE FALSE END AS is_last_snapshot
+CASE WHEN rn = 1 THEN TRUE ELSE FALSE END AS is_last_snapshot,
+SUM(avg_inventory) OVER (
+    ORDER BY date
+    ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+  ) / 7.0 AS avg_sales_last_7_days,
+  
+  avg_inventory/(SUM(avg_inventory) OVER (
+    ORDER BY date
+    ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+  ) / 7.0 )as days_on_hand
 from inventario inv
 left join stg.cost c on inv.product_code=c.product_code
-
 
         
 
