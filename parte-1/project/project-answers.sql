@@ -47,23 +47,36 @@ left join stg.monthly_average_fx_rate fx on date_trunc('month',date)=fx.month
  group by mes_y_anio,category
 
 -- - ROI por categoria de producto. ROI = ventas netas / Valor promedio de inventario (USD)
---Terminar sacando el costo del inventario promedio y luego roi.
-	with Ventas as (	
+with Ventas as (	
 	select 
 	to_char(s.date, 'YYYY-MM') AS mes_y_anio,
-	category, 
-sum(s.sale-coalesce (s.promotion,0)) as ventas_netas,
-avg((inv.initial+inv.final)/2)as inventario_promedio
-from stg.order_line_sale s
-left join stg.cost c on c.product_code=s.product
-left join stg.product_master pm on s.product = pm.product_code
-left join stg.inventory inv 
-on s.product = inv.item_id
-and s.store = inv.store_id
-and s.date = inv.date
-group by mes_y_anio, category
-order by mes_y_anio, category
+	product, 
+	sum(s.sale-coalesce (s.promotion,0)) as ventas_netas,
+	avg((inv.initial+inv.final)/2)as inventario_promedio
+		from stg.order_line_sale s
+			left join stg.cost c on c.product_code=s.product
+			left join stg.product_master pm on s.product = pm.product_code
+			left join stg.inventory inv on s.product = inv.item_id
+								and s.store = inv.store_id
+								and s.date = inv.date
+			group by mes_y_anio, product
+			order by mes_y_anio, product
 		)
+		
+		select 
+		mes_y_anio,
+		category,
+		sum(ventas_netas/fx_rate_usd_peso)as Total_ventas_netas,
+		sum(inventario_promedio*product_cost_usd) valor_promedio_inventario,
+		sum(ventas_netas/fx_rate_usd_peso)/sum(inventario_promedio*product_cost_usd) as Roi
+		from Ventas v
+		left join stg.cost c on v.product=c.product_code
+		left join stg.product_master pm on v.product = pm.product_code
+		LEFT JOIN stg.monthly_average_fx_rate fx ON TO_DATE(v.mes_y_anio || '-01', 'YYYY-MM-DD') = fx.month  -- Convierte a fecha
+		
+		group by mes_y_anio, category
+		order by mes_y_anio, category
+		
 		 
 
 
