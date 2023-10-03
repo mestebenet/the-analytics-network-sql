@@ -329,6 +329,8 @@ sum(quantity) as suma_por_dia
     - El Promedio diario Unidades vendidas ultimos 7 dias tiene que calcularse para cada dia.
 */
 
+CREATE OR REPLACE VIEW stg.vw_inventory AS
+
 with inventario as(
 Select 
 i.date,
@@ -362,7 +364,6 @@ category,
 subcategory,
 subsubcategory,
 country,
-store_name,
 avg_inventory,
 (avg_inventory* product_cost_usd) as inventory_cost,
 CASE WHEN rn = 1 THEN TRUE ELSE FALSE END AS is_last_snapshot,
