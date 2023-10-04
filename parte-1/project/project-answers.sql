@@ -236,7 +236,7 @@ WITH inventario AS (
         store_id,
         (avg((initial+final)/2)) as inventory_Promedio
     FROM stg.inventory
-    GROUP BY mes_y_anio, item_id, store_id
+    GROUP BY mes_y_anio, item_id, store_id	 
 )
 SELECT 
     i.mes_y_anio,
