@@ -168,52 +168,60 @@ ORDER BY to_char(ols.date, 'YYYY-MM')
 With ventas_netas as (
 		Select
 		to_char(date, 'YYYY-MM') AS mes_y_anio,
-		sum(sale-coalesce(promotion,0)-coalesce(credit,0)) as ventas_netas,
-		sum(tax) as tax
-		FROM stg.order_line_sale
-		group by mes_y_anio
+		sum(sale-coalesce(promotion,0)-coalesce(credit,0)) ,
+	sum(CASE
+        WHEN currency='ARS' THEN (sale-coalesce(promotion,0)-coalesce(credit,0))/fx_rate_usd_peso
+        WHEN currency='URU' THEN (sale-coalesce(promotion,0)-coalesce(credit,0))/fx_rate_usd_uru
+        WHEN currency='EUR' THEN (sale-coalesce(promotion,0)-coalesce(credit,0))/fx_rate_usd_eur
+    END) as ventas_netas,
+	
+		sum(CASE
+        WHEN currency='ARS' THEN (tax/fx_rate_usd_peso)
+        WHEN currency='URU' THEN (tax/fx_rate_usd_uru)
+        WHEN currency='EUR' THEN (tax/fx_rate_usd_eur)
+    END) AS tax_usd
+		FROM stg.order_line_sale ols
+		left join stg.monthly_average_fx_rate fx
+		on cast(date_trunc('month', ols.date) as date) = fx.month
+	group by mes_y_anio
 			)
 		Select 
 	mes_y_anio,
-	(tax/ventas_netas) as tax_rate
+	(tax_usd/ventas_netas) as tax_rate
 	FROM ventas_netas vn
 	order by mes_y_anio
 
 -- - Cantidad de creditos otorgados
-
+ --Contar cantidad de creditos
 Select count(credit) as credit_usd
-	FROM stg.order_line_sale; 
-
-WITH creditos AS (
-    SELECT
+	FROM stg.order_line_sale;
+--Creditos totales en dolares
+ SELECT
         to_char(date, 'YYYY-MM') AS mes_y_anio,
-        SUM(credit) AS creditos
-    FROM stg.order_line_sale
-    GROUP BY mes_y_anio
-)
-SELECT 
-    c.mes_y_anio,
-    (creditos / fx_rate_usd_peso) as credit_usd
-FROM creditos c
-LEFT JOIN stg.monthly_average_fx_rate fx ON 
-    to_date(c.mes_y_anio || '-01', 'YYYY-MM-DD') = fx.month
-ORDER BY c.mes_y_anio;
+	sum(CASE
+        WHEN currency='ARS' THEN (credit)/fx_rate_usd_peso
+        WHEN currency='URU' THEN (credit)/fx_rate_usd_uru
+        WHEN currency='EUR' THEN (credit)/fx_rate_usd_eur
+    END) AS creditos
+    FROM stg.order_line_sale ols
+left join stg.monthly_average_fx_rate fx
+on cast(date_trunc('month', ols.date) as date) = fx.month
+GROUP BY to_char(ols.date, 'YYYY-MM')
+ORDER BY to_char(ols.date, 'YYYY-MM')
 
 -- - Valor pagado final por order de linea. Valor pagado: Venta - descuento + impuesto - credito
-WITH creditos AS (
-    SELECT
+SELECT
         to_char(date, 'YYYY-MM') AS mes_y_anio,
-        SUM(sale-promotion+tax-credit) AS Valor_Pagado
-    FROM stg.order_line_sale
-    GROUP BY mes_y_anio
-)
-SELECT 
-    c.mes_y_anio,
-    (Valor_Pagado / fx_rate_usd_peso) as amount_paid_usd
-FROM creditos c
-LEFT JOIN stg.monthly_average_fx_rate fx ON 
-    to_date(c.mes_y_anio || '-01', 'YYYY-MM-DD') = fx.month
-ORDER BY c.mes_y_anio;
+		sum(CASE
+        WHEN currency='ARS' THEN (sale-promotion+tax-credit)/fx_rate_usd_peso
+        WHEN currency='URU' THEN (sale-promotion+tax-credit)/fx_rate_usd_uru
+        WHEN currency='EUR' THEN (sale-promotion+tax-credit)/fx_rate_usd_eur
+    END) AS Valor_Pagado_final
+    FROM stg.order_line_sale ols
+left join stg.monthly_average_fx_rate fx
+on cast(date_trunc('month', ols.date) as date) = fx.month
+GROUP BY to_char(ols.date, 'YYYY-MM')
+ORDER BY to_char(ols.date, 'YYYY-MM')
 
 
 -- Supply Chain (USD)
