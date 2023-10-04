@@ -6,15 +6,32 @@ with Valores_en_dolares as (
  select
  to_char(date, 'YYYY-MM') AS mes_y_anio,	
  order_number,
- sale/fx_rate_usd_peso as Sale_en_dolares,
- coalesce(promotion,0)/fx_rate_usd_peso as Promotion_en_dolares,
- coalesce(credit,0)/fx_rate_usd_peso as Creditos_en_dolares,
- coalesce(tax,0)/fx_rate_usd_peso as Tax_en_dolares,
- product_cost_usd/fx_rate_usd_peso as Costo_en_dolares
+ currency,	
+	case when currency='ARS' then sale/fx_rate_usd_peso 
+		when currency='URU' then sale/fx_rate_usd_uru
+		when currency='EUR' then sale/fx_rate_usd_eur
+			end as Sale_en_dolares,
+	
+	case when currency='ARS' then  coalesce(promotion,0)/fx_rate_usd_peso 
+		when currency='URU' then coalesce(promotion,0)/fx_rate_usd_uru
+		when currency='EUR' then coalesce(promotion,0)/fx_rate_usd_eur
+			end as Promotion_en_dolares,
+	
+	case when currency='ARS' then  coalesce(credit,0)/fx_rate_usd_peso
+		when currency='URU' then coalesce(credit,0)/fx_rate_usd_uru
+		when currency='EUR' then coalesce(credit,0)/fx_rate_usd_eur
+			end  as Creditos_en_dolares,
+	
+	case when currency='ARS' then coalesce(tax,0)/fx_rate_usd_peso 
+		when currency='URU' then coalesce(tax,0)/fx_rate_usd_uru
+		when currency='EUR' then coalesce(tax,0)/fx_rate_usd_eur
+			end  as Tax_en_dolares,
+ product,
+ product_cost_usd*quantity as Costo_en_dolares
  FROM stg.order_line_sale ol
-left join stg.cost c on c.product_code=ol.product
-left join stg.monthly_average_fx_rate fx on date_trunc('month',date)=fx.month
-)
+ left join stg.cost c on c.product_code=ol.product
+ left join stg.monthly_average_fx_rate fx on date_trunc('month',date)=fx.month
+ )
  select 
  mes_y_anio,
  sum(Sale_en_dolares) as sales_usd,
