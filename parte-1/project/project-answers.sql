@@ -132,19 +132,18 @@ with Ventas as (
 
 
 -- - AOV (Average order value), valor promedio de la orden. (USD)
-	with ventas as (
-		Select
-		to_char(date, 'YYYY-MM') AS mes_y_anio,
-		AVG(sale) as aov
-		FROM stg.order_line_sale ols
-		group by to_char(date, 'YYYY-MM') 
-		order by to_char(date, 'YYYY-MM')
-		)
-		Select 
-		mes_y_anio,
-		aov/fx_rate_usd_peso as aov_USD
-		from ventas v
-		LEFT JOIN stg.monthly_average_fx_rate fx ON TO_DATE(v.mes_y_anio || '-01', 'YYYY-MM-DD') = fx.month 
+	SELECT
+    to_char(ols.date, 'YYYY-MM') AS mes_y_anio,
+	AVG(CASE
+        WHEN currency='ARS' THEN (sale/fx_rate_usd_peso)
+        WHEN currency='URU' THEN (sale/fx_rate_usd_uru)
+        WHEN currency='EUR' THEN (sale/fx_rate_usd_eur)
+    END) AS AOV
+FROM stg.order_line_sale ols
+left join stg.monthly_average_fx_rate fx
+on cast(date_trunc('month', ols.date) as date) = fx.month
+GROUP BY to_char(ols.date, 'YYYY-MM')
+ORDER BY to_char(ols.date, 'YYYY-MM')
 
 
 
