@@ -151,12 +151,18 @@ ORDER BY to_char(ols.date, 'YYYY-MM')
 -- - Impuestos pagados
 
 Select 
-	to_char(s.date, 'YYYY-MM') AS mes_y_anio,
-	sum(tax/fx_rate_usd_peso) as tax_usd
-	FROM stg.order_line_sale s
-	left join stg.monthly_average_fx_rate fx on date_trunc('month',s.date)=fx.month
-	group by to_char(date, 'YYYY-MM')
-	order by to_char(date, 'YYYY-MM')
+	to_char(ols.date, 'YYYY-MM') AS mes_y_anio,
+	sum(CASE
+        WHEN currency='ARS' THEN (tax/fx_rate_usd_peso)
+        WHEN currency='URU' THEN (tax/fx_rate_usd_uru)
+        WHEN currency='EUR' THEN (tax/fx_rate_usd_eur)
+    END) AS tax_usd
+		
+	FROM stg.order_line_sale ols
+left join stg.monthly_average_fx_rate fx
+on cast(date_trunc('month', ols.date) as date) = fx.month
+GROUP BY to_char(ols.date, 'YYYY-MM')
+ORDER BY to_char(ols.date, 'YYYY-MM')
 
 -- - Tasa de impuesto. Impuestos / Ventas netas 
 With ventas_netas as (
