@@ -42,14 +42,31 @@ with Valores_en_dolares as (
 
 -- - Margen por categoria de producto (USD)
 with Valores_en_dolares as (
- select
+select
  to_char(date, 'YYYY-MM') AS mes_y_anio,	
  order_number,
- sale*fx_rate_usd_peso as Sale_en_dolares,
- coalesce(promotion,0)/fx_rate_usd_peso as Promotion_en_dolares,
- coalesce(credit,0)/fx_rate_usd_peso as Creditos_en_dolares,
- coalesce(tax,0)/fx_rate_usd_peso as Tax_en_dolares,
- product_cost_usd/fx_rate_usd_peso as Costo_en_dolares,
+ currency,	
+	case when currency='ARS' then sale/fx_rate_usd_peso 
+		when currency='URU' then sale/fx_rate_usd_uru
+		when currency='EUR' then sale/fx_rate_usd_eur
+			end as Sale_en_dolares,
+	
+	case when currency='ARS' then  coalesce(promotion,0)/fx_rate_usd_peso 
+		when currency='URU' then coalesce(promotion,0)/fx_rate_usd_uru
+		when currency='EUR' then coalesce(promotion,0)/fx_rate_usd_eur
+			end as Promotion_en_dolares,
+	
+	case when currency='ARS' then  coalesce(credit,0)/fx_rate_usd_peso
+		when currency='URU' then coalesce(credit,0)/fx_rate_usd_uru
+		when currency='EUR' then coalesce(credit,0)/fx_rate_usd_eur
+			end  as Creditos_en_dolares,
+	
+	case when currency='ARS' then coalesce(tax,0)/fx_rate_usd_peso 
+		when currency='URU' then coalesce(tax,0)/fx_rate_usd_uru
+		when currency='EUR' then coalesce(tax,0)/fx_rate_usd_eur
+			end  as Tax_en_dolares,
+ product,
+ product_cost_usd*quantity as Costo_en_dolares,
 	pm.category
  FROM stg.order_line_sale ol
 left join stg.cost c on c.product_code=ol.product
@@ -68,6 +85,8 @@ with Ventas as (
 	select 
 	to_char(s.date, 'YYYY-MM') AS mes_y_anio,
 	product, 
+	currency,
+	pm.category,
 	sum(s.sale-coalesce (s.promotion,0)) as ventas_netas,
 	avg((inv.initial+inv.final)/2)as inventario_promedio
 		from stg.order_line_sale s
@@ -76,24 +95,39 @@ with Ventas as (
 			left join stg.inventory inv on s.product = inv.item_id
 								and s.store = inv.store_id
 								and s.date = inv.date
-			group by mes_y_anio, product
+			group by mes_y_anio, product,currency,pm.category
 			order by mes_y_anio, product
-		)
+		), 
 		
+		ventas_netas_USD as
+		(
 		select 
 		mes_y_anio,
-		category,
-		sum(ventas_netas/fx_rate_usd_peso)as Total_ventas_netas,
-		sum(inventario_promedio*product_cost_usd) valor_promedio_inventario,
-		sum(ventas_netas/fx_rate_usd_peso)/sum(inventario_promedio*product_cost_usd) as Roi
+		v.category,
+		currency,
+		case when currency='ARS' then sum(ventas_netas/fx_rate_usd_peso)
+		when currency='URU' then sum(ventas_netas/fx_rate_usd_uru)
+		when currency='EUR' then sum(ventas_netas/fx_rate_usd_eur)
+			end as Total_ventas_netas,
+				
+		sum(inventario_promedio*product_cost_usd) valor_promedio_inventario
+		
 		from Ventas v
 		left join stg.cost c on v.product=c.product_code
 		left join stg.product_master pm on v.product = pm.product_code
 		LEFT JOIN stg.monthly_average_fx_rate fx ON TO_DATE(v.mes_y_anio || '-01', 'YYYY-MM-DD') = fx.month  -- Convierte a fecha
 		
+		group by mes_y_anio, v.category,currency
+		order by mes_y_anio, v.category
+		)
+		
+		select 
+		mes_y_anio,
+		category,
+		sum(Total_ventas_netas)/sum(valor_promedio_inventario) as Roi
+		from ventas_netas_USD
 		group by mes_y_anio, category
 		order by mes_y_anio, category
-		
 		 
 
 
