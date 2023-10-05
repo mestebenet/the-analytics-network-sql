@@ -420,6 +420,16 @@ left join stg.cost c on inv.product_code=c.product_code
 -- ## Semana 4 - Parte A
 
 -- 1. Calcular la contribucion de las ventas brutas de cada producto al total de la orden utilizando una window function. Mismo objetivo que el ejercicio de la parte A pero con diferente metodologia.
+with ventas as (
+Select 
+order_number, product,
+sale,
+sum(sale) over(partition by order_number) as total_sales
+from stg.order_line_sale
+)
+select order_number, product,
+(sale)*1.00/(total_sales)*1.00 as sale_contribution
+from ventas
 
 -- 2. La regla de pareto nos dice que aproximadamente un 20% de los productos generan un 80% de las ventas. Armar una vista a nivel sku donde se pueda identificar por orden de contribucion, ese 20% aproximado de SKU mas importantes. Nota: En este ejercicios estamos construyendo una tabla que muestra la regla de Pareto. 
 -- El nombre de la vista es `stg.vw_pareto`. Las columnas son, `product_code`, `product_name`, `quantity_sold`, `cumulative_contribution_percentage`
