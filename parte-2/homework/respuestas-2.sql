@@ -100,7 +100,7 @@ select order_number, product
 	having count(1)>1
 
 -- 5. Calcular el margen bruto a nivel Subcategoria de producto. Usar la vista creada stg.vw_order_line_sale_usd. La columna de margen se llama margin_usd
-select subcategory, sum(margin_usd) as margin_usd
+select subcategory, sum(Margen_USD) as margin_usd
 from stg.vw_order_line_sale_usd olsu
 left join stg.product_master pm on olsu.product=pm.Product_code  
 group by  subcategory
