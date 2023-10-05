@@ -457,9 +457,39 @@ total_qty_running_sum  as acumulative_contribution,
 (total_qty_running_sum)*1.00/(total_qty)*1.00 as acumulative_contribution_percentage
 from cte2 c2
 left join stg.product_master pm on pm.product_code=c2.product
--- 3. Calcular el crecimiento de ventas por tienda mes a mes, con el valor nominal y el valor % de crecimiento.
 
--- 4. Crear una vista a partir de la tabla return_movements que este a nivel Orden de venta, item y que contenga las siguientes columnas:
+	
+-- 3. Calcular el crecimiento de ventas por tienda mes a mes, con el valor nominal y el valor % de crecimiento.
+with ventas_mes as (
+select 
+		cast(date_trunc('month', s.date) as date) as mes,
+		sum(quantity) as quantity,
+		store
+from stg.order_line_sale s
+left join stg.store_master sm
+	on s.store = sm.store_id
+group by 
+	1, store
+order by 
+	1 asc
+	)
+select 
+	v1.store,
+	v1.mes as mes_anterior,
+	v1.quantity as qty_mes_anterior,
+	v2.mes as mes_actual,
+	v2.quantity as qty_mes_actual,
+	v2.quantity - v1.quantity as diff,
+	(v2.quantity - v1.quantity)*1.0 / v1.quantity*1.0 as growth
+from ventas_mes v1
+inner join ventas_mes v2
+on v1.mes = v2.mes - interval '1 month'
+and v1.store = v2.store
+order by 
+	v1.store, v1.mes asc
+
+
+-- 4. Crear una vista a partir de la tabla return_movements que este a nivel sku, item y que contenga las siguientes columnas:
 /* - Orden `order_number`
 - Sku `item`
 - Cantidad unidated retornadas `quantity`
