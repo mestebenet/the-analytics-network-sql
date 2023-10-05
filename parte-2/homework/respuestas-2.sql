@@ -279,45 +279,61 @@ WHERE (order_number, product) IN (
 -- 4. Obtener las ventas totales en USD de productos que NO sean de la categoria TV NI esten en tiendas de Argentina. Modificar la vista stg.vw_order_line_sale_usd con todas las columnas necesarias. 
 
 --Modificar vista, agregando columnas necesarias. 
-create VIEW  stg.vw_order_line_sale_usd as
-(
- WITH valores_en_dolares AS (
-SELECT ol.order_number,
-            ol.product,
-            ol.sale * fx.fx_rate_usd_peso AS sale_en_dolares,
-            COALESCE(ol.promotion, 0::numeric) / fx.fx_rate_usd_peso AS promotion_en_dolares,
-            COALESCE(ol.credit, 0::numeric) / fx.fx_rate_usd_peso AS creditos_en_dolares,
-            COALESCE(ol.tax, 0::numeric) / fx.fx_rate_usd_peso AS tax_en_dolares,
-            c.product_cost_usd / fx.fx_rate_usd_peso AS costo_en_dolares,
-			ol.store as store,
-			sm.country as country,
-			pm.subcategory as subcategoria_producto
-			
-           FROM stg.order_line_sale ol
-             LEFT JOIN stg.cost c ON c.product_code::text = ol.product::text
-             LEFT JOIN stg.monthly_average_fx_rate fx ON date_trunc('month'::text, ol.date::timestamp with time zone) = fx.month
-			 left join stg.store_master sm on ol.store=sm.store_id
-			 left join stg.product_master pm on ol.product=pm.product_code 
-	 )
-	SELECT vd.order_number,
-    vd.product,
-	vd.sale_en_dolares,
-    vd.sale_en_dolares - vd.promotion_en_dolares - vd.creditos_en_dolares - vd.costo_en_dolares AS margin_usd,
-    s.name AS proveedor,
-	vd.country,
-	vd.subcategoria_producto
-	
-   FROM valores_en_dolares vd
-     LEFT JOIN stg.suppliers s ON s.product_id::text = vd.product::text
-	)
-
+create view stg.vw_order_line_sale_usd as
+  With margen as (
+  SELECT 
+  order_number,
+  product,
+  store,
+  case when currency='ARS' then (sale)/fx_rate_usd_peso 
+		when currency='URU' then (sale)/fx_rate_usd_uru
+		when currency='EUR' then (sale)/fx_rate_usd_eur
+			end as Sale_USD,
+  case when currency='ARS' then (coalesce(promotion,0))/fx_rate_usd_peso 
+		when currency='URU' then (coalesce(promotion,0))/fx_rate_usd_uru
+		when currency='EUR' then (coalesce(promotion,0))/fx_rate_usd_eur
+			end as promotion_USD,
+  case when currency='ARS' then (coalesce(credit,0))/fx_rate_usd_peso 
+		when currency='URU' then (coalesce(credit,0))/fx_rate_usd_uru
+		when currency='EUR' then (coalesce(credit,0))/fx_rate_usd_eur
+			end as credit_USD,
+ case when currency='ARS' then (coalesce(tax,0))/fx_rate_usd_peso 
+		when currency='URU' then (coalesce(tax,0))/fx_rate_usd_uru
+		when currency='EUR' then (coalesce(tax,0))/fx_rate_usd_eur
+			end as tax_USD, 
+	  
+ quantity*product_cost_usd as  line_cost_usd,
+	  s.name as Suppliers
+	 
+ FROM stg.order_line_sale ol
+	   
+ left join stg.cost c on c.product_code=ol.product
+ left join stg.monthly_average_fx_rate fx on date_trunc('month',date)=fx.month
+ left join stg.suppliers s  on s.product_id=ol.product
+	  
+ where is_primary='True'
+	  )
+	  select 
+	    order_number,
+  		product,
+		store,
+		Sale_USD,
+		promotion_USD,
+		credit_USD,
+		tax_USD,
+		line_cost_usd,
+		Sale_USD-promotion_USD-line_cost_usd as Margen_USD,
+		Suppliers
+		from margen
 --Obtener ventas totales: 
 
 SELECT
-sum(sale_en_dolares)
-FROM stg.vw_order_line_sale_usd
+sum(sale_usd) as ventas_totales
+FROM stg.vw_order_line_sale_usd olsu
+left join stg.store_master sm on sm.store_id=olsu.store
+left join stg.product_master pm on pm.product_code=olsu.product
 	where country<>'Argentina' 
-	and subcategoria_producto<>'TV'
+	and subsubcategory<>'TV'
 
 -- 5. El gerente de ventas quiere ver el total de unidades vendidas por dia junto con otra columna con la cantidad de unidades vendidas una semana atras y la diferencia entre ambos.Diferencia entre las ventas mas recientes y las mas antiguas para tratar de entender un crecimiento.
 
