@@ -259,7 +259,7 @@ on date_trunc('month',date)=fx.month
   		product,
 		Sale_USD,
 		Costo_USD,
-	  	Sale_USD-Costo_USD
+	  	Sale_USD-Costo_USD as Margen_USD
 		from margen
 
 -- 11. Calcular la cantidad de items distintos de cada subsubcategoria que se llevan por numero de orden.
