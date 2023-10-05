@@ -76,7 +76,7 @@ create view stg.vw_order_line_sale_usd as
 		when currency='EUR' then (coalesce(tax,0))/fx_rate_usd_eur
 			end as tax_USD, 
 	  
- quantity*product_cost_usd as Costo_USD
+ quantity*product_cost_usd as  line_cost_usd
  FROM stg.order_line_sale ol
  left join stg.cost c on c.product_code=ol.product
  left join stg.monthly_average_fx_rate fx on date_trunc('month',date)=fx.month
@@ -88,7 +88,7 @@ create view stg.vw_order_line_sale_usd as
 		promotion_USD,
 		credit_USD,
 		tax_USD,
-		Costo_USD,
+		line_cost_usd,
 		Sale_USD-promotion_USD-Costo_USD as Margen_USD
 		from margen
 	
