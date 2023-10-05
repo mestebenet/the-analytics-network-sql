@@ -433,7 +433,30 @@ from ventas
 
 -- 2. La regla de pareto nos dice que aproximadamente un 20% de los productos generan un 80% de las ventas. Armar una vista a nivel sku donde se pueda identificar por orden de contribucion, ese 20% aproximado de SKU mas importantes. Nota: En este ejercicios estamos construyendo una tabla que muestra la regla de Pareto. 
 -- El nombre de la vista es `stg.vw_pareto`. Las columnas son, `product_code`, `product_name`, `quantity_sold`, `cumulative_contribution_percentage`
+create view stg.vw_pareto as
+with cte as(
+select 
+product,
+sum(quantity) as qty_sold
+from stg.order_line_sale ols
+group by product
+order by product desc)
+, cte2 as (
+select 
+product,
+qty_sold,
+sum(qty_sold) over() as total_qty,
+sum(qty_sold) over(order by qty_sold) as total_qty_running_sum
+from cte)
 
+select 
+product  as product_code, 
+pm.name as product_name,
+qty_sold as quantity_sold,
+total_qty_running_sum  as acumulative_contribution,
+(total_qty_running_sum)*1.00/(total_qty)*1.00 as acumulative_contribution_percentage
+from cte2 c2
+left join stg.product_master pm on pm.product_code=c2.product
 -- 3. Calcular el crecimiento de ventas por tienda mes a mes, con el valor nominal y el valor % de crecimiento.
 
 -- 4. Crear una vista a partir de la tabla return_movements que este a nivel Orden de venta, item y que contenga las siguientes columnas:
