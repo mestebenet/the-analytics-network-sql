@@ -231,17 +231,36 @@ left join stg.monthly_average_fx_rate fx
 on date_trunc('month',date)=fx.month
 
 -- 9. Calcular cantidad de ventas totales de la empresa en dolares.
-  SELECT sum(sale / fx_rate_usd_peso) as venta_Dolares
-FROM stg.order_line_sale ol
-left join stg.monthly_average_fx_rate fx 
-on date_trunc('month',date)=fx.month
+   SELECT 
+  sum (case when currency='ARS' then sale/fx_rate_usd_peso 
+		when currency='URU' then sale/fx_rate_usd_uru
+		when currency='EUR' then sale/fx_rate_usd_eur
+			end) as Sale_en_dolares
+ FROM stg.order_line_sale ol
+ left join stg.monthly_average_fx_rate fx 
+ on date_trunc('month',date)=fx.month
 
 -- 10. Mostrar en la tabla de ventas el margen de venta por cada linea. Siendo margen = (venta - descuento) - costo expresado en dolares.
+ With margen as (
   SELECT 
-(sale-coalesce(promotion,0)-product_cost_usd)*fx_rate_usd_peso as margen_Dolares
-FROM stg.order_line_sale ol
-left join stg.cost c on c.product_code=ol.product
-left join stg.monthly_average_fx_rate fx on date_trunc('month',date)=fx.month
+  order_number,
+  product,
+  case when currency='ARS' then (sale-coalesce(promotion,0))/fx_rate_usd_peso 
+		when currency='URU' then (sale-coalesce(promotion,0))/fx_rate_usd_uru
+		when currency='EUR' then (sale-coalesce(promotion,0))/fx_rate_usd_eur
+			end as Sale_USD,
+ quantity*product_cost_usd as Costo_USD
+ FROM stg.order_line_sale ol
+ left join stg.cost c on c.product_code=ol.product
+ left join stg.monthly_average_fx_rate fx on date_trunc('month',date)=fx.month
+	  )
+	  select 
+	    order_number,
+  		product,
+		Sale_USD,
+		Costo_USD,
+	  	Sale_USD-Costo_USD
+		from margen
 
 -- 11. Calcular la cantidad de items distintos de cada subsubcategoria que se llevan por numero de orden.
   
