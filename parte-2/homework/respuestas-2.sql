@@ -196,30 +196,9 @@ from stg.vw_order_line_sale_usd
 group by order_number, product,suppliers
 having count(1)>1
 
---Nueva Vista
-CREATE OR REPLACE VIEW stg.vw_order_line_sale_usd
- AS 
-WITH valores_en_dolares AS (
- SELECT ol.order_number,
-            ol.product,
-            ol.sale / fx.fx_rate_usd_peso AS sale_en_dolares,
-            COALESCE(ol.promotion, 0::numeric) / fx.fx_rate_usd_peso AS promotion_en_dolares,
-            COALESCE(ol.credit, 0::numeric) / fx.fx_rate_usd_peso AS creditos_en_dolares,
-            COALESCE(ol.tax, 0::numeric) / fx.fx_rate_usd_peso AS tax_en_dolares,
-            c.product_cost_usd / fx.fx_rate_usd_peso AS costo_en_dolares
-	 		
-           FROM stg.order_line_sale ol
-             LEFT JOIN stg.cost c ON c.product_code::text = ol.product::text
-             LEFT JOIN stg.monthly_average_fx_rate fx ON date_trunc('month'::text, ol.date::timestamp with time zone) = fx.month
-			
- )
- SELECT vd.order_number,
-    vd.product,
-    vd.sale_en_dolares - vd.promotion_en_dolares - vd.creditos_en_dolares - vd.costo_en_dolares AS margin_usd,
-    s.name as proveedor
-	from valores_en_dolares vd
-	left join stg.suppliers s on s.product_id=vd.product 
-	where s.is_primary='True'
+	 En la vista,  se agrego  where is_primary='True', debido a que como cada producto, tenia más de un proveedor, era necesario  especificar que proveedor era el correcto. 
+	Caso contrario,  traia un resultado (o linea), para cada proveedor. Lo que duplicaba, triplicaba, ect. los resultados. 
+
 
 -- ## Semana 3 - Parte B
 
