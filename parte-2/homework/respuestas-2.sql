@@ -128,37 +128,58 @@ CREATE TABLE IF NOT EXISTS stg.suppliers
     name character varying(255) COLLATE pg_catalog."default",
     is_primary boolean
  );
---Calcular ventas por proveedor
-Select
-s.name,
-sum(sale),
-from stg.suppliers s
-left join stg.order_line_sale ols on s.product_id=ols.product 
-group by s.name;
 
 --Nueva Vista 
-CREATE OR REPLACE VIEW stg.vw_order_line_sale_usd
- AS
- WITH valores_en_dolares AS (
-         SELECT ol.order_number,
-            ol.product,
-            ol.sale / fx.fx_rate_usd_peso AS sale_en_dolares,
-            COALESCE(ol.promotion, 0::numeric) / fx.fx_rate_usd_peso AS promotion_en_dolares,
-            COALESCE(ol.credit, 0::numeric) /fx.fx_rate_usd_peso AS creditos_en_dolares,
-            COALESCE(ol.tax, 0::numeric) / fx.fx_rate_usd_peso AS tax_en_dolares,
-            c.product_cost_usd / fx.fx_rate_usd_peso AS costo_en_dolares
-	 		
-           FROM stg.order_line_sale ol
-             LEFT JOIN stg.cost c ON c.product_code::text = ol.product::text
-             LEFT JOIN stg.monthly_average_fx_rate fx ON date_trunc('month'::text, ol.date::timestamp with time zone) = fx.month
-			
- )
- SELECT vd.order_number,
-    vd.product,
-    vd.sale_en_dolares - vd.promotion_en_dolares - vd.creditos_en_dolares - vd.costo_en_dolares AS margin_usd,
-    s.name as proveedor
-	from valores_en_dolares vd
-	left join stg.suppliers s on s.product_id=vd.product 
+create view stg.vw_order_line_sale_usd as
+  With margen as (
+  SELECT 
+  order_number,
+  product,
+  case when currency='ARS' then (sale)/fx_rate_usd_peso 
+		when currency='URU' then (sale)/fx_rate_usd_uru
+		when currency='EUR' then (sale)/fx_rate_usd_eur
+			end as Sale_USD,
+  case when currency='ARS' then (coalesce(promotion,0))/fx_rate_usd_peso 
+		when currency='URU' then (coalesce(promotion,0))/fx_rate_usd_uru
+		when currency='EUR' then (coalesce(promotion,0))/fx_rate_usd_eur
+			end as promotion_USD,
+  case when currency='ARS' then (coalesce(credit,0))/fx_rate_usd_peso 
+		when currency='URU' then (coalesce(credit,0))/fx_rate_usd_uru
+		when currency='EUR' then (coalesce(credit,0))/fx_rate_usd_eur
+			end as credit_USD,
+ case when currency='ARS' then (coalesce(tax,0))/fx_rate_usd_peso 
+		when currency='URU' then (coalesce(tax,0))/fx_rate_usd_uru
+		when currency='EUR' then (coalesce(tax,0))/fx_rate_usd_eur
+			end as tax_USD, 
+	  
+ quantity*product_cost_usd as  line_cost_usd,
+	  s.name as Suppliers
+	 
+ FROM stg.order_line_sale ol
+ left join stg.cost c on c.product_code=ol.product
+ left join stg.monthly_average_fx_rate fx on date_trunc('month',date)=fx.month
+ left join stg.suppliers s  on s.product_id=ol.product
+	  
+ where is_primary='True'
+	  )
+	  select 
+	    order_number,
+  		product,
+		Sale_USD,
+		promotion_USD,
+		credit_USD,
+		tax_USD,
+		line_cost_usd,
+		Sale_USD-promotion_USD-line_cost_usd as Margen_USD,
+		Suppliers
+		from margen;
+
+--Calcular ventas por proveedor
+select 
+	suppliers,
+	sum(sale_usd)
+	FROM stg.vw_order_line_sale_usd
+	group by suppliers
 
   
 
@@ -169,10 +190,10 @@ CREATE OR REPLACE VIEW stg.vw_order_line_sale_usd
     -- - Explicar brevemente (con palabras escrito tipo comentario) que es lo que sucedia.
 
 --Query de Validación. Agregue proveedor. 
-select order_number, product, proveedor
+select order_number, product, suppliers
 ,count(1)
 from stg.vw_order_line_sale_usd
-group by order_number, product,proveedor
+group by order_number, product,suppliers
 having count(1)>1
 
 --Nueva Vista
