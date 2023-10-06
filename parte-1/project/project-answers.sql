@@ -229,6 +229,7 @@ ORDER BY to_char(ols.date, 'YYYY-MM')
 
 
 -- - Costo de inventario promedio por tienda
+	 
 WITH inventario AS (
     SELECT
         to_char(date, 'YYYY-MM') AS mes_y_anio,
@@ -248,6 +249,23 @@ GROUP BY i.mes_y_anio, store_id
 ORDER BY i.mes_y_anio, store_id;
 
 -- - Costo del stock de productos que no se vendieron por tienda 
+With Productos_no_vendidos as (
+SELECT store_id, item_id,
+    sum(quantity) as cantidad_vendida
+	FROM stg.inventory inv
+	left join stg.order_line_sale s
+	 	on s.product = inv.item_id
+		and s.store = inv.store_id
+		and s.date = inv.date
+		group by store_id, item_id
+		having sum(quantity) is null
+	)
+	
+	SELECT date, i.store_id, i.item_id, ((initial+final)/2)*product_cost_usd Costo_inv_Promedio
+	FROM stg.inventory i
+	inner join  Productos_no_vendidos pnv on pnv.item_id=i.item_id
+					and pnv.store_id = i.store_id
+	left join stg.cost c on i.item_id=c. product_code
 
 -- - Cantidad y costo de devoluciones
 WITH devoluciones AS (
