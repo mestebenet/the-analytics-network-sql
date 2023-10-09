@@ -501,6 +501,25 @@ order by
 - `last_location` (el ultimo lugar donde se registro, de la columna `to_location` el producto/orden)
 - El nombre de la vista es `stg.vw_returns`*/
 
+create view stg.vw_returns as
+SELECT r.order_id, r.return_id, r.itemcharacter, r.quantity, r.date,
+r.quantity *(
+ case when currency='ARS' then (sale)/fx_rate_usd_peso 
+	when currency='URU' then (sale)/fx_rate_usd_uru
+	when currency='EUR' then (sale)/fx_rate_usd_eur
+		end )/ols.quantity as sale_returned_usd,
+name as product_name, category, subcategory,
+first_value (from_location) over(partition by return_id order by movement_id asc) as first_location,
+last_value (to_location) over(partition by return_id order by movement_id asc) as last_location 
+	FROM stg.returns r
+	left join stg.order_line_sale ols on ols.product=r.itemcharacter
+										and ols.date = r.date
+										and ols.order_number= r.order_id
+	left join stg.product_master pm on pm.product_code=r.itemcharacter
+	left join stg.monthly_average_fx_rate fx on date_trunc('month',r.date)=fx.month
+	
+
+
 -- 5. Crear una tabla calendario llamada stg.date con las fechas del 2022 incluyendo el año fiscal y trimestre fiscal (en ingles Quarter). El año fiscal de la empresa comienza el primero Febrero de cada año y dura 12 meses. Realizar la tabla para 2022 y 2023. La tabla debe contener:
 /* - Fecha (date) `date`
 - Mes (date) `month`
