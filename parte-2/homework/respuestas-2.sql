@@ -502,15 +502,17 @@ order by
 - El nombre de la vista es `stg.vw_returns`*/
 
 create view stg.vw_returns as
-SELECT r.order_id, r.return_id, r.itemcharacter, r.quantity, r.date,
+SELECT distinct (r.order_id), r.return_id, r.itemcharacter, r.quantity, r.date,
 r.quantity *(
  case when currency='ARS' then (sale)/fx_rate_usd_peso 
 	when currency='URU' then (sale)/fx_rate_usd_uru
 	when currency='EUR' then (sale)/fx_rate_usd_eur
 		end )/ols.quantity as sale_returned_usd,
-name as product_name, category, subcategory,
-first_value (from_location) over(partition by return_id order by movement_id asc) as first_location,
-last_value (to_location) over(partition by return_id order by movement_id asc) as last_location 
+	name as product_name, category, subcategory,
+	
+	first_value (from_location) over(partition by r.return_id order by movement_id asc) as first_location,
+	last_value (to_location) over(partition by r.return_id) as last_location 
+
 	FROM stg.returns r
 	left join stg.order_line_sale ols on ols.product=r.itemcharacter
 										and ols.date = r.date
