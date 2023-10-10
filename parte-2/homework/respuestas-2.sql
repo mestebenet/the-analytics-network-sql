@@ -462,7 +462,25 @@ left join stg.product_master pm on pm.product_code=c2.product
 	
 -- 3. Calcular el crecimiento de ventas por tienda mes a mes, con el valor nominal y el valor % de crecimiento.
 
-
+with venta_mes as (
+	select olsu.store as tienda,
+	cast(date_trunc('month', date) as date) as mes,
+	sum(sale_usd) venta_bruta_usd
+	FROM stg.vw_order_line_sale_usd olsu
+	left join stg.order_line_sale ols on ols.order_number=olsu.order_number
+									and ols.product=olsu.product
+	group by olsu.store, cast(date_trunc('month', date) as date)
+	), 
+	venta_mes_anterior as (
+	select *,
+	lag(venta_bruta_usd) over(partition by tienda order by mes asc) as Venta_ves_anterior	
+	from venta_mes
+		)
+		
+		select *,
+		(venta_bruta_usd-Venta_ves_anterior) dif_ventas,
+		((venta_bruta_usd-Venta_ves_anterior)/Venta_ves_anterior) dif_ventas_porct
+		from venta_mes_anterior
 
 -- 4. Crear una vista a partir de la tabla return_movements que este a nivel sku, item y que contenga las siguientes columnas:
 /* - Orden `order_number`
