@@ -216,15 +216,33 @@ SELECT
    --  - Cuantas ventas brutas en USD fueron walkout por tienda?
    --  - Cual es el porcentaje de las ventas brutas walkout sobre el total de ventas brutas por tienda?
 
-SELECT olsu.store,
-	sum(case when is_walkout='true' then 1 else 0 end) as cant_walkout,
-	sum( case when is_walkout='true' then sale else 0 end) as ventas_Walkout,
-	sum(sale_usd) as ventas_totales,
-	(sum(case when is_walkout='true' then sale else 0 end))/sum(sale) as porcentaje
-		FROM stg.vw_order_line_sale_usd olsu
-		left join stg.order_line_sale ols on ols.order_number=olsu.order_number
-		group by olsu.store
-		order by olsu.store
+with ordenes as (
+SELECT distinct(olsu.order_number) ordenes, 
+olsu.store as tienda,
+is_walkout as walkout
+	FROM stg.vw_order_line_sale_usd olsu
+	left join stg.order_line_sale ols on ols.order_number=olsu.order_number
+									 and ols. product=olsu. product
+	
+),
+total_sale_USD as (
+
+select tienda,ordenes, sum(sale_usd) total_sale_USD,
+	walkout
+	 from ordenes o 
+left join stg.vw_order_line_sale_usd olsu on olsu.order_number= o.ordenes
+group by tienda, ordenes,walkout
+	)
+	
+	Select 
+	 tienda,
+	 sum(case when walkout='true' then 1 else 0 end) as cant_walkout,
+	sum( case when walkout='true' then total_sale_USD else 0 end) as ventas_Walkout,
+	sum(total_sale_USD) as ventas_totales,
+	sum(case when walkout='true' then total_sale_USD else 0 end)/sum(total_sale_USD) as porcentaje
+	from total_sale_USD
+	group by tienda
+	order by tienda
 	
 -- 3. Siguiendo el nivel de detalle de la tabla ventas, hay una orden que no parece cumplirlo. Como identificarias duplicados utilizando una windows function? 
 -- Tenes que generar una forma de excluir los casos duplicados, para este caso particular y a nivel general, si llegan mas ordenes con duplicaciones.
