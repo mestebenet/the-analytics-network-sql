@@ -5,7 +5,7 @@
 -- . Las columnas son `store_id`, `date`, `traffic`
 
 create view stg.vw_store_traffic as (
-
+	
 with trafico as (
 select store_id, 
 TO_DATE(TO_CHAR(date, '99999999'), 'YYYYMMDD') AS date,
