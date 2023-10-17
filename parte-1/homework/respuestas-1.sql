@@ -43,7 +43,7 @@ SELECT order_number, product, store, date, quantity, sale, promotion, tax, credi
 -- 8. Cuales son los producto de electro que no son Soporte de TV ni control remoto.
 	SELECT product_code, name, category, subcategory, subsubcategory, material, color, origin, ean, is_active, has_bluetooth, size
 	FROM stg.product_master
-	where subsubcategory <> 'Control remoto' and subsubcategory <> 'Soporte';
+	WHERE subsubcategory NOT IN ('Control remoto', 'Soporte');
 
 -- 9. Mostrar todas las lineas de venta donde el monto sea mayor a $100.000 solo para transacciones en pesos.
 SELECT order_number, product, store, date, quantity, sale, promotion, tax, credit, currency, pos, is_walkout
