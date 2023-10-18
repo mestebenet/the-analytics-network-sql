@@ -28,7 +28,7 @@ and is_active = True
 select * 
 from stg.store_master
 where country = 'Argentina'
-order by start_date
+order by start_date asc
 
 -- 6. Cuales fueron las ultimas 5 ordenes de ventas?
 select *
@@ -84,15 +84,17 @@ select distinct country as paises
 from stg.store_master
 
 -- 2. Cuantos productos por subcategoria tiene disponible para la venta?
-select subcategory, count (subcategory)
+select subcategory, count (distinct product_code)
 from stg.product_master
 where is_active = 'true'
 group by subcategory
 
 -- 3. Cuales son las ordenes de venta de Argentina de mayor a $100.000?
-select order_number, sale
-from stg.order_line_sale
-where sale > 100000
+select ols.order_number, ols.sale
+from stg.order_line_sale as ols
+where currency = 'ARS'
+and sale > 100000
+
 
 -- 4. Obtener los descuentos otorgados durante Noviembre de 2022 en cada una de las monedas?
 select currency, sum(promotion)
@@ -108,7 +110,7 @@ and currency = 'EUR'
 group by currency
 
 -- 6. En cuantas ordenes se utilizaron creditos?
-select count (order_number) 
+select count (distinct order_number) 
 from stg.order_line_sale
 where credit is not null
 
@@ -118,20 +120,13 @@ from stg.order_line_sale
 group by store
 
 -- 8. Cual es el inventario promedio por dia que tiene cada tienda?
-select store_id, date, ((sum(initial)+sum(final))/2)/count(item_id) 
-from stg.inventory
-group by store_id, date
-order by store_id, date
-
--- otra opción con el mismo resultado
-	
-select store_id, date, avg ((initial+final)/2) 
+select store_id, date, ((sum(initial)+sum(final))/2) 
 from stg.inventory
 group by store_id, date
 order by store_id, date
 
 -- 9. Obtener las ventas netas y el porcentaje de descuento otorgado por producto en Argentina.
-select product, sum (sale)-sum(promotion)-sum(tax)-sum(credit) as ventas_netas, (sum(promotion)/sum(sale)) as desc_otorgado
+select product, sum (sale)-sum(tax) as ventas_netas, (sum(promotion)/sum(sale)) as desc_otorgado
 from stg.order_line_sale
 where currency = 'ARS'
 group by product
@@ -140,7 +135,7 @@ order by product
 -- 10. Las tablas "market_count" y "super_store_count" representan dos sistemas distintos que usa la empresa para contar la cantidad de gente que ingresa a tienda, uno para las tiendas de Latinoamerica y otro para Europa. Obtener en una unica tabla, las entradas a tienda de ambos sistemas.
 SELECT store_id, TO_CHAR(to_date(date::text, 'YYYYMMDD'), 'YYYY-MM-DD') AS date, traffic
 FROM stg.market_count
-UNION 
+UNION ALL
 SELECT store_id, date, traffic
 FROM stg.super_store_count;
 
@@ -162,15 +157,16 @@ from stg.order_line_sale
 group by product, currency
 
 -- 14. Cual es la tasa de impuestos que se pago por cada orden de venta?
-select order_number, currency, coalesce(tax/sale,0)
+select order_number, currency, coalesce(sum(tax/sale),0)
 from stg.order_line_sale 
+group by order_number, currency
 
 -- ## Semana 2 - Parte A
 
 -- 1. Mostrar nombre y codigo de producto, categoria y color para todos los productos de la marca Philips y Samsung, mostrando la leyenda "Unknown" cuando no hay un color disponible
 select name, product_code, category, coalesce(color,'Unknown') as color
 from stg.product_master
-where name like ('%PHILIPS%') OR name like ('%SAMSUNG%')
+where upper(name) like ('%PHILIPS%') OR upper(name) like ('%SAMSUNG%')
 
 -- 2. Calcular las ventas brutas y los impuestos pagados por pais y provincia en la moneda correspondiente.
 select sm.country, sm.province, ols.currency, sum (ols.sale) as ventas_brutas, sum(ols.tax) as impuestos
@@ -200,7 +196,7 @@ order by lugar
 
 
 -- 5. Mostrar una vista donde se vea el nombre de tienda y la cantidad de entradas de personas que hubo desde la fecha de apertura para el sistema "super_store".
-select sm.name, coalesce (sum (ssc.traffic),'0') as entradas
+select sm.name, sum (ssc.traffic) as entradas
 from stg.store_master as sm
 left join stg.super_store_count as ssc
 on sm.store_id = ssc.store_id 
@@ -208,25 +204,24 @@ group by sm.name
 order by sm.name
 
 -- 6. Cual es el nivel de inventario promedio en cada mes a nivel de codigo de producto y tienda; mostrar el resultado con el nombre de la tienda.
-select i.store_id, sm.name, i.item_id, to_char(i.date,'Mon') as mes, (avg((initial+final)/2)) as inventario
+select i.store_id, sm.name, i.item_id, extract(year from i.date) as year, extract(month from i.date) as month, (avg((initial+final)/2)) as inventario
 from stg.inventory as i
 left join stg.store_master as sm
 on sm.store_id = i.store_id 
-group by i.store_id, sm.name, i.item_id, to_char(i.date,'Mon')
-order by i.store_id, sm.name, i.item_id, to_char(i.date,'Mon')
+group by i.store_id, sm.name, i.item_id, year, month
+order by i.store_id, sm.name, i.item_id, year, month
 
 -- 7. Calcular la cantidad de unidades vendidas por material. Para los productos que no tengan material usar 'Unknown', homogeneizar los textos si es necesario.
 select  sum (ols.quantity) ,
 	CASE
-        WHEN pm.material IS NULL THEN 'Unknown'
-        ELSE replace (pm.material, 'plastico','PLASTICO')
+        WHEN pm.material IS NULL THEN 'UNKNOWN'
+        ELSE upper (pm.material)
     END AS concat
 from stg.order_line_sale as ols
 left join stg.product_master as pm
 on pm.product_code = ols.product 
 group by 2
 order by 2
- 
  
 -- 8. Mostrar la tabla order_line_sales agregando una columna que represente el valor de venta bruta en cada linea convertido a dolares usando la tabla de tipo de cambio.
 select ols.*,
@@ -241,7 +236,7 @@ case
 	end as ventas_usd
 from stg.order_line_sale as ols
 left join stg.monthly_average_fx_rate as fx
-on date_trunc('month',ols.date) = fx.month
+on ols.date = fx.month
 
 
 -- 9. Calcular cantidad de ventas totales de la empresa en dolares.
@@ -258,7 +253,7 @@ select *,
 	end as ventas_usd
 from stg.order_line_sale as ols
 left join stg.monthly_average_fx_rate as fx
-on date_trunc('month',ols.date) = fx.month
+on ols.date = fx.month
 )
 
 select sum (ventas_usd)
@@ -278,12 +273,12 @@ select ols.*,
 	
 from stg.order_line_sale as ols
 left join stg.monthly_average_fx_rate as fx
-on date_trunc('month',ols.date) = fx.month
+on ols.date = fx.month
 left join stg.cost as c
 on c.product_code = ols.product
 
 -- 11. Calcular la cantidad de items distintos de cada subsubcategoria que se llevan por numero de orden.
-select ols.order_number, pm.subcategory, count (distinct ols.product)  --> entiendo que es cada producto pero podría ser también "quantity"
+select pm.subcategory, ols.order_number, count (distinct ols.product)  --> entiendo que es cada producto pero podría ser también "quantity"
 from stg.order_line_sale as ols
 left join stg.product_master as pm
 on pm.product_code = ols.product
@@ -325,7 +320,6 @@ where origin = 'Argentina'
 update bkp.pm_20230924 
 set is_local = 'false' 
 where origin != 'Argentina'
-
 	
 -- 5. Agregar una nueva columna a la tabla de ventas llamada "line_key" que resulte ser la concatenacion de el numero de orden y el codigo de producto.
 alter table stg.order_line_sale 
@@ -341,7 +335,7 @@ create table stg.employees (
 	surname varchar(255),
 	start_date date,
 	end_date date, 
-	phone numeric (20,0), 
+	phone numeric (20,0), --> puede ser también un varchar porque lleva un +
 	country varchar(30), 
 	province varchar(30), 
 	store_id smallint, 
@@ -361,7 +355,9 @@ values
 	(default, 'Catalina', 'Garcia', '2022-03-01', Null, Null, 'Argentina', 'Buenos Aires', 2, 'Representante Comercial'),
 	(default, 'Ana', 'Valdez', '2020-02-21', '2022-03-01', Null, 'España', 'Madrid', 8, 'Jefe Logistica'),
 	(default, 'Fernando', 'Moralez', '2022-04-04', Null, Null, 'España', 'Valencia', 9, 'Vendedor')
-  
+ 
+--No es necesario el default, el ID se genera sólo al ser autoincremental.
+
 -- 8. Crear un backup de la tabla "cost" agregandole una columna que se llame "last_updated_ts" que sea el momento exacto en el cual estemos realizando el backup en formato datetime.
 select *
 into bkp.cost_bis
