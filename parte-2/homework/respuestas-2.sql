@@ -462,7 +462,6 @@ CREATE OR REPLACE VIEW stg.date
 select
 	date_in as date,
 	extract(month from date_in) as month,
-	((extract(month from date_in))-1) as month,
 	extract(year from date_in) as year,
 	to_char(date_in, 'day') as weekday,
 	case
