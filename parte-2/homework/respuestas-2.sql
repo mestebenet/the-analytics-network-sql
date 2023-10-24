@@ -618,3 +618,20 @@ set brand=
        when name like '%Motorola%' then 'Motorola'
 	   end
 -- 3. Un jefe de area tiene una tabla que contiene datos sobre las principales empresas de distintas industrias en rubros que pueden ser competencia y nos manda por mail la siguiente informacion: (ver informacion en md file)
+create schema test
+create table test.facturacion (
+	rubro varchar(255),
+	FacturacionTotal NUMERIC(17, 2)),
+	empresa varchar(255);
+		
+	
+insert into test.facturacion  (empresa, rubro, FacturacionTotal) 
+  values ('El Corte Ingles','Departamental', 110990000000000 );
+insert into test.facturacion  (empresa, rubro, FacturacionTotal) 
+  values ('Mercado Libre','ECOMMERCE', 115860000000000 );	
+ insert into test.facturacion  (empresa, rubro, FacturacionTotal) 
+  values ('Fallabela','Departamental', 20460000);
+ insert into test.facturacion  (empresa, rubro, FacturacionTotal) 
+  values ('Tienda Inglesa','Departamental', 10780000 );
+  insert into test.facturacion  (empresa, rubro, FacturacionTotal) 
+  values ('Zara','INDUMENTARIA', 999980000);
