@@ -571,6 +571,8 @@ FROM (
     SELECT cast('2022-02-01' as date) + (n || ' day')::interval as date_c
     FROM generate_series(0, 730) n
 ) dd;
+
+
 -- ## Semana 4 - Parte B
 
 -- 1. Calcular el crecimiento de ventas por tienda mes a mes, con el valor nominal y el valor % de crecimiento. Utilizar self join.
@@ -616,8 +618,11 @@ set brand=
 	   when name like '%Acer%' then 'Acer'
 	   when name like '%JBL%' then 'JBL'
        when name like '%Motorola%' then 'Motorola'
+	else 'Unknown'
 	   end
--- 3. Un jefe de area tiene una tabla que contiene datos sobre las principales empresas de distintas industrias en rubros que pueden ser competencia y nos manda por mail la siguiente informacion: (ver informacion en md file)
+
+	
+	-- 3. Un jefe de area tiene una tabla que contiene datos sobre las principales empresas de distintas industrias en rubros que pueden ser competencia y nos manda por mail la siguiente informacion: (ver informacion en md file)
 create schema test
 create table test.facturacion (
 	rubro varchar(255),
