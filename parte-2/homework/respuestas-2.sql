@@ -578,5 +578,16 @@ order by
 	v1.store, v1.mes asc
 
 -- 2. Hacer un update a la tabla de stg.product_master agregando una columna llamada brand, con la marca de cada producto con la primer letra en mayuscula. Sabemos que las marcas que tenemos son: Levi's, Tommy Hilfiger, Samsung, Phillips, Acer, JBL y Motorola. En caso de no encontrarse en la lista usar Unknown.
-
+Alter Table stg.product_master
+add column brand varchar(255)
+update stg.product_master
+set brand=
+ case when name like '%Levi%' then 'Levis'
+ 	  when name like '%Tommy%' then 'Tommy Hilfiger'
+	  when name like '%Samsung%' then 'Samsung'
+	  when name like '%Phillips%' then 'Phillips'
+	   when name like '%Acer%' then 'Acer'
+	   when name like '%JBL%' then 'JBL'
+       when name like '%Motorola%' then 'Motorola'
+	   end
 -- 3. Un jefe de area tiene una tabla que contiene datos sobre las principales empresas de distintas industrias en rubros que pueden ser competencia y nos manda por mail la siguiente informacion: (ver informacion en md file)
