@@ -635,3 +635,12 @@ insert into test.facturacion  (empresa, rubro, FacturacionTotal)
   values ('Tienda Inglesa','Departamental', 10780000 );
   insert into test.facturacion  (empresa, rubro, FacturacionTotal) 
   values ('Zara','INDUMENTARIA', 999980000);
+
+select 
+rubro,
+case when sum(facturaciontotal)>=1000000000 then concat (round(sum(facturaciontotal)/1000000000000,2),'B')
+ when (sum(facturaciontotal)) between (1000000,999999999)  then concat(round(sum(facturaciontotal)/1000000,2),'M')
+end as facturacion_total
+from test.facturacion
+group by rubro
+order by rubro asc
