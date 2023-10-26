@@ -9,5 +9,5 @@ CREATE TABLE IF NOT EXISTS dim.supplier_product
                             is_primary boolean
                             , constraint fk_product_id
                               		foreign key (product_id)
-                              		references dim.product_master(product_code)
+                              		references dim.product_master(product_id)
 );
