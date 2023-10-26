@@ -2,12 +2,16 @@ DROP TABLE IF EXISTS fct.inventory;
 
 CREATE TABLE IF NOT EXISTS fct.inventory
 (
+    id_invetory bigin generated always as identity primary key	 
     date date,
     store_id smallint,
     item_id character varying(10) COLLATE pg_catalog."default",
     initial smallint,
     final smallint
-	constraint fk_product_id_inventory
+	constraint fk_store_id_inventory
 		foreign key (store_id)
-		references dim.store_master(store_id)
+		references dim.store_master(store_id),
+	constraint fk_item_id_inventory
+		foreign key (item_id)
+		references dim.product_master(product_code)
 )
