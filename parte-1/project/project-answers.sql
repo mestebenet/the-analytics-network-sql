@@ -125,16 +125,12 @@ aux_inv2 as (
 	group by 1,2,3
 )
 
---select * from aux_inv
-
 select 
 		año, mes,
 		category,
 		margin_usd,
 		(net_sales_usd/cost_inv_prom) as ROI
 from aux_2
---group by 1,2,3
---order by 1,2,3
 
 
 select 
@@ -146,8 +142,6 @@ select
 from consolidado
 group by 1,2
 order by 1,2		
-		
-
 
 
 -- Contabilidad (USD)
