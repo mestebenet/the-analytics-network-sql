@@ -59,21 +59,21 @@ with consolidado as (
 			end as tax_usd,	
 		case
 			when ols.currency = 'ARS'
-			then ((ols.sale-coalesce(ols.promotion,0)-coalesce(ols.credit,0)-coalesce(ols.tax,0))/fx.fx_rate_usd_peso)
+			then (ols.sale-coalesce(ols.promotion,0))/fx.fx_rate_usd_peso
 			when ols.currency = 'EUR'
-			then ((ols.sale-coalesce(ols.promotion,0)-coalesce(ols.credit,0)-coalesce(ols.tax,0))/fx.fx_rate_usd_eur)
+			then (ols.sale-coalesce(ols.promotion,0))/fx.fx_rate_usd_eur
 			when ols.currency = 'URU'
-			then ((ols.sale-coalesce(ols.promotion,0)-coalesce(ols.credit,0)-coalesce(ols.tax,0))/fx.fx_rate_usd_uru)
-			else ols.sale-coalesce(ols.promotion,0)-coalesce(ols.credit,0)-coalesce(ols.tax,0)
+			then (ols.sale-coalesce(ols.promotion,0))/fx.fx_rate_usd_uru
+			else ols.sale-coalesce(ols.promotion,0)
 			end as net_sales_usd,
 		case
 			when ols.currency = 'ARS'
-			then ((ols.sale-coalesce(ols.promotion,0)-coalesce(ols.credit,0)-coalesce(ols.tax,0))/fx.fx_rate_usd_peso)-c.product_cost_usd
+			then ((ols.sale-coalesce(ols.promotion,0)-coalesce(ols.tax,0))/fx.fx_rate_usd_peso)-(c.product_cost_usd*ols.quantity)
 			when ols.currency = 'EUR'
-			then ((ols.sale-coalesce(ols.promotion,0)-coalesce(ols.credit,0)-coalesce(ols.tax,0))/fx.fx_rate_usd_eur)-c.product_cost_usd
+			then ((ols.sale-coalesce(ols.promotion,0)-coalesce(ols.tax,0))/fx.fx_rate_usd_eur)-(c.product_cost_usd*ols.quantity)
 			when ols.currency = 'URU'
-			then ((ols.sale-coalesce(ols.promotion,0)-coalesce(ols.credit,0)-coalesce(ols.tax,0))/fx.fx_rate_usd_uru)-c.product_cost_usd
-			else ols.sale-coalesce(ols.promotion,0)-coalesce(ols.credit,0)-coalesce(ols.tax,0)-c.product_cost_usd
+			then ((ols.sale-coalesce(ols.promotion,0)-coalesce(ols.tax,0))/fx.fx_rate_usd_uru)-(c.product_cost_usd*ols.quantity)
+			else ols.sale-coalesce(ols.promotion,0)-coalesce(ols.tax,0)-(c.product_cost_usd*ols.quantity)
 			end as margin_usd
 	from stg.order_line_sale as ols
 	left join stg.product_master as pm
@@ -86,26 +86,68 @@ with consolidado as (
 		on inv.item_id = ols.product
 		and inv.date = ols.date
 		and inv.store_id = ols.store
+),
+aux_store as (
+	select 
+		año, mes, fecha_completa, store,
+		sum(((initial + final)*1.00)/2) as inv_prom,
+		sum((((initial + final)*1.00)/2)*product_cost_usd) as cost_inv_prom
+	from consolidado
+	group by 1,2,3,4
+),
+aux_store2 as (
+	select
+		año, mes,store,
+		avg (inv_prom) as inv_prom ,
+		avg (cost_inv_prom) as cost_inv_prom
+	from aux_store
+	group by 1,2,3
+	order by 1,2,3
+),
+aux_inv as (
+	select 
+		año, mes, fecha_completa, category,
+		sum (net_sales_usd) as net_sales_usd,
+		sum (margin_usd) as margin_usd,
+		sum(((initial + final)*1.00)/2) as inv_prom,
+		sum((((initial + final)*1.00)/2)*product_cost_usd) as cost_inv_prom
+	from consolidado
+	group by 1,2,3,4
+),
+aux_inv2 as (
+	select
+		año, mes,category,
+		sum (net_sales_usd) as net_sales_usd,
+		sum (margin_usd) as margin_usd,
+		avg (inv_prom) as inv_prom ,
+		avg (cost_inv_prom) as cost_inv_prom
+	from aux_inv
+	group by 1,2,3
 )
+
+--select * from aux_inv
+
+select 
+		año, mes,
+		category,
+		margin_usd,
+		(net_sales_usd/cost_inv_prom) as ROI
+from aux_2
+--group by 1,2,3
+--order by 1,2,3
+
 
 select 
 		año, mes,
 		sum (sales_usd) as sales_usd,
 		sum (net_sales_usd) as net_sales_usd,
 		sum (margin_usd) as margin_usd,
-		(sum (sales_usd))/(count(order_number)) as aov
+		(sum (sales_usd))/(count(distinct order_number)) as aov
 from consolidado
 group by 1,2
 order by 1,2		
 		
-select 
-		año, mes,
-		category,
-		sum (margin_usd) as margin_usd,
-		(sum (net_sales_usd)/(avg ((initial+final)/2))) as ROI
-from consolidado
-group by 1,2,3
-order by 1,2,3
+
 
 
 -- Contabilidad (USD)
@@ -130,26 +172,30 @@ order by 1,2
 
 -- Supply Chain (USD)
 -- - Costo de inventario promedio por tienda
+
 select 
-		año, mes,
-		store,
-		sum (product_cost_usd)/(avg ((initial+final)/2)) as inventory_cost_usd
-from consolidado
-group by 1,2
-order by 1,2
+		año, mes, store,
+		cost_inv_prom
+from aux_store2
 
 -- - Costo del stock de productos que no se vendieron por tienda
 
 with inv_cost as (
-select 
-	*,
-	extract(year from i.date) as año, 
-	extract(month from i.date) as mes,
-	extract(day from i.date) as dia
-from stg.inventory as i
-left join stg.cost as c
-	on i.item_id = c.product_code
-order by 2,3,1
+	select 
+		*,
+		extract(year from i.date) as año, 
+		extract(month from i.date) as mes,
+		extract(day from i.date) as dia
+	from stg.inventory as i
+	left join stg.cost as c
+		on i.item_id = c.product_code
+	where item_id in
+		(select pm.product_code
+		from stg.product_master as pm
+		left join stg.order_line_sale as ols
+			on pm.product_code = ols.product
+		where ols.product is null)
+	order by 2,3,1
 )
 
 select 
@@ -161,39 +207,55 @@ group by store_id,año, mes
 order by store_id,año, mes
 
 
-
 -- - Cantidad y costo de devoluciones
-
+with aux_dev as (
+	select
+		extract(year from rm.date) as año, 
+		extract(month from rm.date) as mes,
+		rm.order_id, rm.item, rm.quantity, c.product_cost_usd
+	from stg.return_movements as rm
+	left join stg.cost as c
+		on rm.item = c.product_code
+	group by 1,2,3,4,5,6
+	order by 1,2,3,4,5,6
+)
+	
 select
-	extract(year from rm.date) as año, 
-	extract(month from rm.date) as mes,
-	(sum (rm.quantity)) as quantity,
-	(sum (rm.quantity*c.product_cost_usd)) as returned_sales_usd
-from stg.return_movements as rm
-left join stg.cost as c
-	on rm.item = c.product_code
-group by 1,2
-order by 1,2		
-
+	año, mes, 
+	(sum (quantity)) as quantity,
+	(sum (quantity*product_cost_usd)) as returned_sales_usd
+from aux_dev
+group by 1,2 
+order by 1,2
+	
 
 
 -- Tiendas
 -- - Ratio de conversion. Cantidad de ordenes generadas / Cantidad de gente que entra
 with conteo_total as (
-SELECT store_id, TO_DATE(TO_CHAR(to_date(date::text, 'YYYYMMDD'), 'YYYY-MM-DD'),'YYYY-MM-DD') AS date, traffic
-FROM stg.market_count
-UNION ALL
-SELECT store_id, TO_DATE(date,'YYYY-MM-DD') as date, traffic
-FROM stg.super_store_count
+	SELECT store_id, TO_DATE(TO_CHAR(to_date(date::text, 'YYYYMMDD'), 'YYYY-MM-DD'),'YYYY-MM-DD') AS date, traffic
+	FROM stg.market_count
+	UNION ALL
+	SELECT store_id, TO_DATE(date,'YYYY-MM-DD') as date, traffic
+	FROM stg.super_store_count
+),
+aux_conteo as (
+	select
+		extract(year from ols.date) as año, 
+		extract(month from ols.date) as mes,
+		extract(day from ols.date) as dia,
+		((count (distinct ols.order_number))*1.00) as count_order,
+		((sum(traffic))*1.00) as traffic
+	from stg.order_line_sale as ols
+	left join conteo_total as ct
+		on ols.store = ct.store_id
+		and ols.date = ct.date
+	group by 1,2,3
+	order by 1,2,3
 )
 
 select  
-	extract(year from ols.date) as año, 
-	extract(month from ols.date) as mes,
-	(((count (distinct ols.order_number))*1.00)/((sum(traffic))*1.00)) as cvr 
-from stg.order_line_sale as ols
-left join conteo_total as ct
-on ols.store = ct.store_id
-and ols.date = ct.date
-group by 1,2
-order by 1,2
+	año, mes,
+	((sum (count_order))/(sum(traffic))) as cvr 
+from aux_conteo
+group by 1, 2
