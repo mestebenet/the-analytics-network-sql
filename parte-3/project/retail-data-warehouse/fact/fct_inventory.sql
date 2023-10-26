@@ -15,5 +15,5 @@ CREATE TABLE IF NOT EXISTS dim.inventory
                               		references dim.store_master(store_id)
                             , constraint fk_item_id
                               		foreign key (item_id)
-                              		references dim.product_master(product_code)
+                              		references dim.product_master(product_id)
 );
