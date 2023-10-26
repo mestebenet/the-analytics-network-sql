@@ -457,7 +457,6 @@ left join stg.vw_order_line_sale_usd as olsu
 - Fecha del año anterior (date, ejemplo: 2021-01-01 para la fecha 2022-01-01) `date_ly`
 - Nota: En general una tabla date es creada para muchos años mas (minimo 10), en este caso vamos a realizarla para el 2022 y 2023 nada mas.. 
 */
-CREATE OR REPLACE VIEW stg.date
 
 select
 	date_in as date,
@@ -469,8 +468,6 @@ select
 		else false
 		end as is_weekend,
 	to_char(date_in, 'month') as month_label,
-	to_char (date_in, 'yyyymmdd'):: INT as date_id,
-	cast (date_in as date) as date_fin,
 	case
 		when extract (month from date_in) in (1) then concat ('FY',cast(((extract(year from date_in))-1) as text))
 		else concat ('FY',cast((extract(year from date_in)) as text))
@@ -482,7 +479,7 @@ select
 		when extract (month from date_in) in (11,12,1) then 'Q4'
 		end as fiscal_quarter_label,
 	(date_trunc('year', date_in) - interval '1 year') + (date_in - DATE_TRUNC('year', date_in)) AS date_ly
-	
+into stg.date 	
 from
 	(select cast ('2022-01-01' as date) + (n || 'day')::interval as date_in
 	from generate_series (0,365) n );
