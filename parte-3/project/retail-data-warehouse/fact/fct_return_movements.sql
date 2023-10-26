@@ -1,8 +1,8 @@
--- Table: dim.return_movements
+-- Table: fct.return_movements
 
-DROP TABLE IF EXISTS dim.return_movements;
+DROP TABLE IF EXISTS fct.return_movements;
 
-CREATE TABLE IF NOT EXISTS dim.return_movements
+CREATE TABLE IF NOT EXISTS fct.return_movements
 (
                                             order_id character varying(255),
                                             return_id character varying(255),
