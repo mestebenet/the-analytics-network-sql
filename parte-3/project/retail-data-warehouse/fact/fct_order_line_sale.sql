@@ -4,7 +4,7 @@ DROP TABLE IF EXISTS dim.order_line_sale;
 
 CREATE TABLE IF NOT EXISTS dim.order_line_sale
 (
-                              order_number      VARCHAR(255)
+                              order_id          VARCHAR(255)
                             , product           VARCHAR(10)
                             , store             SMALLINT
                             , date              date
