@@ -1,8 +1,8 @@
--- Table: dim.store_traffic
+-- Table: fct.store_traffic
 
-DROP TABLE IF EXISTS dim.store_traffic;
+DROP TABLE IF EXISTS fct.store_traffic;
 
-CREATE TABLE IF NOT EXISTS dim.store_traffic
+CREATE TABLE IF NOT EXISTS fct.store_traffic
 (
                               store_id SMALLINT
                             , date  VARCHAR(10)
