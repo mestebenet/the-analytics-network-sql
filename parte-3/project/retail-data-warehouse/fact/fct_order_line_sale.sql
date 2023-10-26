@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS dim.order_line_sale
                             , is_walkout        BOOLEAN
                             , constraint fk_product
                               		foreign key (product)
-                              		references dim.product_master(product_code)
+                              		references dim.product_master(product_id)
                             , constraint fk_store
                               		foreign key (store)
                               		references dim.store_master(store_id)
