@@ -8,6 +8,6 @@ CREATE TABLE IF NOT EXISTS dim.cost
     cost_usd numeric,
 	constraint fk_product_id_cost
 		foreign key (product_id)
-		references dim.product_master(product_code)
+		references dim.product_master(product_id)
 );
 
