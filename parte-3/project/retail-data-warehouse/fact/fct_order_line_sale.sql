@@ -1,12 +1,12 @@
--- Table: dim.order_line_sale
+-- Table: fct.order_line_sale
 
-DROP TABLE IF EXISTS dim.order_line_sale;
+DROP TABLE IF EXISTS fct.order_line_sale;
 
-CREATE TABLE IF NOT EXISTS dim.order_line_sale
+CREATE TABLE IF NOT EXISTS fct.order_line_sale
 (
                               order_id          VARCHAR(255)
-                            , product           VARCHAR(10)
-                            , store             SMALLINT
+                            , product_id        VARCHAR(10)
+                            , store_id          SMALLINT
                             , date              date
                             , quantity          int
                             , sale              decimal(18,5)
