@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS dim.supplier_product;
+CREATE TABLE IF NOT EXISTS dim.supplier_product
+(
+    product_id varchar(10) Primary Key,
+    name character varying(255),
+    is_primary boolean,
+	    constraint fk_product_id_cost
+		  foreign key (product_id)
+		  references dim.product_master(product_code)
+)
