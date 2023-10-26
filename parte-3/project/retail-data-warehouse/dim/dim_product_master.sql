@@ -4,7 +4,7 @@ DROP TABLE IF EXISTS dim.product_master;
 
 CREATE TABLE IF NOT EXISTS dim.product_master
 (
-                              product_code    varchar(10) PRIMARY KEY
+                              product_id      varchar(10) PRIMARY KEY
                             , name            varchar(255)
                             , category        varchar(255)
                             , subcategory     varchar(255)
