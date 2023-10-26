@@ -1,8 +1,8 @@
--- Table: dim.inventory
+-- Table: fct.inventory
 
-DROP TABLE IF EXISTS dim.inventory;
+DROP TABLE IF EXISTS fct.inventory;
 
-CREATE TABLE IF NOT EXISTS dim.inventory
+CREATE TABLE IF NOT EXISTS fct.inventory
 (
 		 	      date        DATE
                             , store_id    SMALLINT
