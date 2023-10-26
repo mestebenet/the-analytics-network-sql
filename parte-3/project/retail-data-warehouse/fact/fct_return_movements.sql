@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS dim.return_movements
                                             date date,
                                             constraint fk_item_id
                                                   foreign key (item)
-                                              		references dim.product_master(product_code)
+                                              		references dim.product_master(product_id)
                                             constraint fk_order_id
                                                   foreign key (order_id)
                                               		references dim.order_line_sale(order_number)  
