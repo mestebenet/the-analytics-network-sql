@@ -1,0 +1,9 @@
+DROP TABLE IF EXISTS fct.fx_rate;
+
+CREATE TABLE IF NOT EXISTS fct.fx_rate
+(
+    month date primary key,
+    fx_rate_usd_peso numeric,
+    fx_rate_usd_eur numeric,
+    fx_rate_usd_uru numeric
+)
