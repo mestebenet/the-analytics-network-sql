@@ -1,0 +1,17 @@
+SELECT 
+    id_employees, 
+    name, 
+    surname, 
+    start_date, 
+    end_date, 
+    phone, 
+    country, 
+    province, 
+    store_id, 
+    "position",
+    AGE(end_date, start_date) duracion_empleados,
+    CASE
+        WHEN end_date IS NULL THEN 'Activo'
+        ELSE 'Inactivo'
+    END AS Estado
+FROM stg.employees;
