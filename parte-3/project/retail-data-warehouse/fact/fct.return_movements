@@ -1,0 +1,15 @@
+DROP TABLE IF EXISTS fct.return_movements;
+
+CREATE TABLE IF NOT EXISTS fct.return_movements
+(
+    order_id character varying(255),
+    return_id character varying(20) primary key ,
+    itemcharacter character varying(10) ,
+    quantity integer,
+    movement_id integer,
+    from_location character varying(50) ,
+    to_location character varying(50),
+    received_by character varying(50),
+    date date
+		
+)
