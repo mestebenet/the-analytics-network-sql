@@ -1,0 +1,25 @@
+DROP TABLE IF EXISTS fct.order_line_sale;
+
+CREATE TABLE IF NOT EXISTS fct.order_line_sale
+(
+	id_sale bigint generated always as identity primary key,
+    order_number character varying(255) ,
+    product character varying(10) ,
+    store smallint,
+    date date,
+    quantity integer,
+    sale numeric(18,5),
+    promotion numeric(18,5),
+    tax numeric(18,5),
+    credit numeric(18,5),
+    currency character varying(3) COLLATE pg_catalog."default",
+    pos smallint,
+    is_walkout boolean,
+    line_key character varying(255) COLLATE pg_catalog."default",
+	constraint fk_product_id_sale
+		foreign key (product)
+		references dim.product_master(product_code),
+	constraint fk_store_id_sale
+		foreign key (store)
+		references dim.store_master(store_id)
+	)
