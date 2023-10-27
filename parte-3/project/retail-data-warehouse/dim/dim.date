@@ -1,0 +1,15 @@
+DROP TABLE IF EXISTS dim.date;
+CREATE TABLE IF NOT EXISTS dim.date
+(
+    Date_ID date PRIMARY KEY,
+    date date,
+    month date,
+    year date,
+    weekday date,
+	is_weekend boolean,
+	month_label varchar(55),
+	fiscal_year date,
+	fiscal_year_label character varying(55),
+	fiscal_quarter_label character varying(55),
+	date_ly date
+	);
