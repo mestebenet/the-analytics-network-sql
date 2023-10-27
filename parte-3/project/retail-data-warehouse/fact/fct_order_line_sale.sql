@@ -4,7 +4,7 @@ DROP TABLE IF EXISTS fct.order_line_sale;
 
 CREATE TABLE IF NOT EXISTS fct.order_line_sale
 (
-                              order_id          VARCHAR(255)
+                              order_id          VARCHAR(255) primary key
                             , product_id        VARCHAR(10)
                             , store_id          SMALLINT
                             , date              date
