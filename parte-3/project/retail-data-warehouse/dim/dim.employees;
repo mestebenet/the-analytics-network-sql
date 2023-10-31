@@ -1,17 +1,19 @@
-SELECT 
-    id_employees, 
-    name, 
-    surname, 
-    start_date, 
-    end_date, 
-    phone, 
-    country, 
-    province, 
-    store_id, 
-    "position",
-    AGE(end_date, start_date) duracion_empleados,
-    CASE
-        WHEN end_date IS NULL THEN 'Activo'
-        ELSE 'Inactivo'
-    END AS Estado
-FROM stg.employees;
+DROP TABLE IF EXISTS dim.cost;
+
+CREATE TABLE IF NOT EXISTS dim.employee
+(
+    id_employees character varying(10) primary key, 
+    name character varying(55), 
+    surname character varying(55), 
+    start_date date, 
+    end_date date, 
+    phone numeric, 
+    country character varying(55), 
+    province character varying(55), 
+    store_id smallint, 
+    "position" character varying(55),
+    Duracion INTEGER,
+    is_active boolean,
+	CONSTRAINT  store_id_store_master FOREIGN KEY (store_id)
+        REFERENCES dim.store_master (store_id)
+)
