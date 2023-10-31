@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS fct.store_traffic
 (
    id_traffic bigint generated always as identity primary key,
    store_id smallint,
-   date character varying(10),
+   date date,
    traffic smallint,
 		constraint fk_store_traffic_id 
 			foreign key (store_id)
