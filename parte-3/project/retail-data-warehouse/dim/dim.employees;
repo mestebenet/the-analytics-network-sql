@@ -1,4 +1,4 @@
-DROP TABLE IF EXISTS dim.cost;
+DROP TABLE IF EXISTS dim.employee;
 
 CREATE TABLE IF NOT EXISTS dim.employee
 (
