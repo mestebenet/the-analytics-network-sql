@@ -7,7 +7,7 @@ CREATE TABLE IF NOT EXISTS dim.employee
     surname character varying(55), 
     start_date date, 
     end_date date, 
-    phone numeric, 
+    phone character varying(55), 
     country character varying(55), 
     province character varying(55), 
     store_id smallint, 
