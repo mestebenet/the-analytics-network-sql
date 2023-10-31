@@ -1,0 +1,18 @@
+Create procedure etl.sp_dim_cost()language sql as $$
+
+WITH stg_cost AS (
+    SELECT 
+        cl.product_code,
+        cl.product_cost_usd
+    FROM stg.cost cl
+    INNER JOIN dim.product_master pm ON pm.product_code = cl.product_code
+)
+INSERT INTO dim.cost (product_id, cost_usd)
+SELECT 
+    product_code,
+    product_cost_usd
+FROM stg_cost
+ON CONFLICT (product_id) DO UPDATE
+SET cost_usd = EXCLUDED.cost_usd;
+
+$$;
