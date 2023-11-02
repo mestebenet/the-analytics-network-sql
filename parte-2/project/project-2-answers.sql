@@ -82,7 +82,7 @@
 	left join stg.returns r on adj.product_code=r.itemcharacter
 							and adj.date = r.date
 							and adj.order_number= r.order_id
-	where order_number='M202201019002'
+	
 	
 	
 	
