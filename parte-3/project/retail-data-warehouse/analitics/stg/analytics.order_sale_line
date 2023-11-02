@@ -41,11 +41,11 @@ with
 	coalesce (credit,0) as credit,
 	coalesce (etl.convert_usd(currency,credit,date),0)as credit_USD,
 	(product_cost_usd*ols.quantity)as sale_line_cost_usd
-		FROM stg.order_line_sale ols
-		left join stg.store_master sm on ols.store=sm.store_id 
-		left join stg.product_master pm on ols.product=pm.product_code
-		left join stg.suppliers s on ols.product=s.product_id
-		left join stg.cost c on ols.product= c.product_code
+		FROM fct.order_line_sale ols
+		left join dim.store_master sm on ols.store=sm.store_id 
+		left join dim.product_master pm on ols.product=pm.product_code
+		left join dim.suppliers s on ols.product=s.product_id
+		left join dim.cost c on ols.product= c.product_code
 		 where s.is_primary= 'True' 
 	),
 	
@@ -87,11 +87,19 @@ with
 	first_value (from_location) over(partition by r.return_id order by movement_id asc) as first_location,
 	last_value (to_location) over(partition by r.return_id) as last_location 
 	from adjusted_sale adj 
-	left join stg.returns r on adj.product_code=r.itemcharacter
+	left join fct.return_movements r on adj.product_code=r.itemcharacter
 							and adj.date = r.date
 							and adj.order_number= r.order_id;
 							
 	$$;
+	
+ 
+	
+	
+	
+
+	
+	
 	
  
 	
