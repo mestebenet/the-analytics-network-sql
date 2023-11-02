@@ -1,5 +1,4 @@
-
- Create View viz. order_sale_line as 
+--Create View viz. rder_sale_line as 
  with
  	sales as (	
 	select 
@@ -58,16 +57,16 @@
 	case
 		when supplier_name LIKE '%Philips%' AND EXTRACT(YEAR FROM date) = 2022
 		then (gross_sales_usd - sale_line_cost_usd -(20000/(SELECT sum(ols.quantity)
-															FROM stg.order_line_sale ols
-															LEFT JOIN stg.suppliers s ON ols.product = s.product_id
-															WHERE s.name LIKE '%Philips%' AND EXTRACT(YEAR FROM ols.date) = 2022
-															GROUP BY s.name)))
+									FROM stg.order_line_sale ols
+									LEFT JOIN stg.suppliers s ON ols.product = s.product_id
+									WHERE s.name LIKE '%Philips%' AND EXTRACT(YEAR FROM ols.date) = 2022
+									GROUP BY s.name)))
 		when supplier_name LIKE '%Philips%' AND EXTRACT(YEAR FROM date) = 2023
 		then (gross_sales_usd - sale_line_cost_usd -(5000/(SELECT sum(ols.quantity)
-															FROM stg.order_line_sale ols
-															LEFT JOIN stg.suppliers s ON ols.product = s.product_id
-															WHERE s.name LIKE '%Philips%' AND EXTRACT(YEAR FROM ols.date) = 2023
-															GROUP BY s.name)))
+									FROM stg.order_line_sale ols
+									LEFT JOIN stg.suppliers s ON ols.product = s.product_id
+									WHERE s.name LIKE '%Philips%' AND EXTRACT(YEAR FROM ols.date) = 2023
+									GROUP BY s.name)))
 		else (gross_sales_usd - sale_line_cost_usd)
 			  end as adjusted_gross_margin_usd
 	
@@ -83,6 +82,13 @@
 	left join stg.returns r on adj.product_code=r.itemcharacter
 							and adj.date = r.date
 							and adj.order_number= r.order_id
+	where order_number='M202201019002'
+	
+	
+	
+	
 
 	
-;
+	
+	
+ 				
