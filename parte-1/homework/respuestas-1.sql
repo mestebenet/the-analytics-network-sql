@@ -72,7 +72,11 @@ SELECT order_number, product, store, date, quantity, sale, promotion, tax, credi
 	SELECT distinct country	FROM stg.store_master;
 
 -- 2. Cuantos productos por subcategoria tiene disponible para la venta?
-SELECT count(distinct subcategory) FROM stg.product_master;
+SELECT 
+subcategory,
+count(product_code)
+FROM stg.product_master
+group by subcategory;
 
 -- 3. Cuales son las ordenes de venta de Argentina de mayor a $100.000?
 SELECT *
@@ -90,8 +94,8 @@ SELECT sum(tax), country
 	FROM stg.order_line_sale ol
 	left join stg.store_master sm on ol.store=sm.store_id
 	where date between '2022-01-01' and '2022-12-31'
+	and country='Spain'
 	group by country
-	having country='Uruguay'
 
 -- 6. En cuantas ordenes se utilizaron creditos?
 SELECT count(order_number)
