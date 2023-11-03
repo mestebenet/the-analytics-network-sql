@@ -1,0 +1,13 @@
+ Create procedure etl.sp_dim_supplier()language sql as $$
+
+with stg_suppliers as (
+SELECT product_id, s.name as name, is_primary
+    FROM stg.suppliers s
+    inner join dim.product_master pm on pm.product_code=s.product_id
+    where is_primary='True'
+    )
+Insert into dim.supplier (product_id, name, is_primary)
+SELECT product_id, name, is_primary
+    FROM stg_suppliers;
+
+   $$;
