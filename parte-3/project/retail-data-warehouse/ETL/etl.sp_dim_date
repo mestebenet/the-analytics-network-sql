@@ -1,4 +1,56 @@
-ERROR:  la columna «store_id» es de tipo smallint pero la expresión es de tipo character varying
-LINE 13:     store_id, 
-             ^
-HINT:  Necesitará reescribir la expresión o aplicarle una conversión de tipo. 
+Create procedure etl.sp_dim.date()language sql as $$
+
+INSERT INTO dim.date (Date_ID, date, month, year, weekday, is_weekend, month_label, fiscal_year, fiscal_year_label, fiscal_quarter_label, date_ly)
+SELECT 
+    to_char(date_c, 'yyyymmdd')::int as Date_ID,
+    cast(date_c as date) as date,
+    extract(month from date_c) as month,
+    extract(year from date_c) as year,
+     INITCAP(to_char(date_c, 'day')) as weekday,
+	 CASE WHEN to_char(date_c, 'day') like '%saturday%' OR to_char(date_c, 'day') like '%sunday%' THEN true
+        ELSE false END as is_weekend,
+     INITCAP(to_char(date_c, 'month')) as month_label,
+    case 
+		when date_c BETWEEN '20220201' AND '20230131' then 2022 
+		when date_c BETWEEN '20230201' AND '20240131' then 2023 
+		when date_c BETWEEN '20240201' AND '20250131' then 2024 
+		when date_c BETWEEN '20250201' AND '20260131' then 2025
+			else '2025' end as fiscal_year,
+	case 
+		when date_c BETWEEN '20220201' AND '20230131' then 'FY2022' 
+		when date_c BETWEEN '20230201' AND '20240131' then 'FY2023' 
+		when date_c BETWEEN '20240201' AND '20250131' then 'FY2024' 
+		when date_c BETWEEN '20250201' AND '20260131' then 'FY2025'
+			else'FY2026' end as fiscal_year_label,
+		
+    
+   case 
+   		when extract(month from date_c) in (2,3,4) then 'Q1'
+        when extract(month from date_c) in (5,6,7) then 'Q2'
+        when extract(month from date_c) in (8,9,10) then 'Q3'
+        when extract(month from date_c) in (11,12,1) then 'Q4' end as fiscal_quarter_label,
+    CAST( date_c - interval '1 year' AS date) AS date_ly
+	
+	FROM (
+    SELECT cast('2022-02-01' as date) + (n || ' day')::interval as date_c
+    FROM generate_series(0, 1825) n
+) dd;
+
+$$;
+--------------Para crear la tabla con tipos de datos int----------
+
+DROP TABLE IF EXISTS dim.date;
+CREATE TABLE IF NOT EXISTS dim.date
+(
+    Date_ID int PRIMARY KEY,
+    date date,
+    month int,
+    year int,
+    weekday character varying(55),
+	is_weekend boolean,
+	month_label varchar(55),
+	fiscal_year int,
+	fiscal_year_label character varying(55),
+	fiscal_quarter_label character varying(55),
+	date_ly date
+	);
