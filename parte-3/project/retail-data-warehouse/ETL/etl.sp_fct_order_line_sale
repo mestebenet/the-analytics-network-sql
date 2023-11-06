@@ -1,0 +1,10 @@
+Create procedure etl.sp_fct_order_line_sale()language sql as $$
+
+INSERT INTO fct.order_line_sale (order_number, product, store, date, quantity, sale, promotion, tax, credit, currency, pos, is_walkout, line_key)
+	
+
+SELECT order_number, product, store, date, quantity, sale, promotion, tax, credit, currency, pos, is_walkout, line_key
+	FROM stg.order_line_sale
+	
+	ON CONFLICT (order_number, product)
+	DO NOTHING;
