@@ -1,0 +1,26 @@
+Create procedure etl.sp_dim_employee()language sql as $$
+insert into dim.employee (id_employees, name, surname, start_date, end_date, phone, country, province, store_id, "position", duracion, is_active
+	)
+SELECT
+	
+    id_employees, 
+    name, 
+    surname, 
+    start_date, 
+    end_date, 
+    phone, 
+    country, 
+    province, 
+    store_id, 
+    "position",
+    CASE 
+        WHEN end_date IS NULL THEN null
+        ELSE (end_date - start_date)::INTEGER
+    END AS Duracion,
+    CASE
+        WHEN end_date IS NULL THEN 'Activo'
+        ELSE 'Inactivo'
+    END AS is_active
+FROM stg.employees;
+
+$$;
