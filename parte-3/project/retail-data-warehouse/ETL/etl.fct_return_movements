@@ -1,0 +1,9 @@
+Create procedure etl.fct_return_movements()language sql as $$
+
+insert into fct.return_movements (order_id, return_id, itemcharacter, quantity, movement_id, from_location, to_location, received_by, date)
+
+SELECT order_id, return_id, itemcharacter, quantity, movement_id, from_location, to_location, received_by, date
+	FROM stg.returns
+	on conflict (return_id) do nothing;
+	
+	$$;
