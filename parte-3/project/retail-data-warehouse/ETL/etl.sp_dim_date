@@ -1,0 +1,4 @@
+ERROR:  la columna «store_id» es de tipo smallint pero la expresión es de tipo character varying
+LINE 13:     store_id, 
+             ^
+HINT:  Necesitará reescribir la expresión o aplicarle una conversión de tipo. 
