@@ -1,0 +1,11 @@
+Create procedure etl.sp_fct_inventory()language sql as $$
+
+insert into fct.inventory(date, store_id, item_id, initial, final)
+	
+	SELECT date, store_id, item_id, initial, final
+	FROM stg.inventory
+	
+	ON CONFLICT (date, store_id, item_id)
+	DO NOTHING;
+	
+	$$;
