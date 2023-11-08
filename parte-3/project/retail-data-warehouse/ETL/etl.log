@@ -1,3 +1,13 @@
+--Crear Tabla
+
+Create table log.table_updates (
+			fecha Date,
+			tabla varchar (255),
+			usuario varchar (255)
+
+--Crear SP
+
+
 CREATE OR REPLACE PROCEDURE etl.log(parametro_fecha date, parametro_tabla varchar(10), parametro_usuario varchar(10))
 LANGUAGE sql AS $$
 insert into log.table_updates(fecha, tabla, usuario)
