@@ -1,4 +1,9 @@
-Create procedure etl.sp_fct_inventory()language sql as $$
+CREATE OR REPLACE PROCEDURE etl.sp_fct_inventory()
+LANGUAGE plpgsql AS $$
+DECLARE
+  usuario text;
+BEGIN
+  usuario := current_user;
 
 insert into fct.inventory(date, store_id, item_id, initial, final)
 	
@@ -7,5 +12,6 @@ insert into fct.inventory(date, store_id, item_id, initial, final)
 	
 	ON CONFLICT (date, store_id, item_id)
 	DO NOTHING;
-	
-	$$;
+	 CALL etl.log(current_date, 'fct.inventory', usuario);
+END;
+$$;
