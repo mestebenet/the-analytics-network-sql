@@ -1,0 +1,9 @@
+CREATE OR REPLACE PROCEDURE etl.sp_general()
+LANGUAGE plpgsql AS $$
+BEGIN
+  PERFORM etl.sp_fct_inventory();
+  PERFORM etl.sp_product_master();
+  PERFORM etl.sp_fx_rate();
+  PERFORM etl.sp_fct_order_line_sale();
+END;
+$$;
