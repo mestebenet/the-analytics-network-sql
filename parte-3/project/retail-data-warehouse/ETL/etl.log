@@ -1,0 +1,6 @@
+CREATE OR REPLACE PROCEDURE etl.log(parametro_fecha date, parametro_tabla varchar(10), parametro_usuario varchar(10))
+LANGUAGE sql AS $$
+insert into log.table_updates(fecha, tabla, usuario)
+select parametro_fecha, parametro_tabla, parametro_usuario
+; 
+$$;
