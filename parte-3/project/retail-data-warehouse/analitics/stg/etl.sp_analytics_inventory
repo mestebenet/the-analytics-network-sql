@@ -1,0 +1,63 @@
+Create procedure etl.sp_analytics_inventory()language sql as $$
+
+truncate analytics.inventory; 
+
+with inventario as(
+Select 
+i.date,
+i.item_id as product_code,
+pm.name as product_name,
+category,
+subcategory,
+subsubcategory,
+i.store_id as store_id,
+sm.country,
+sm.name as store_name,
+avg(i.initial+i.final/2) as avg_inventory,
+ROW_NUMBER() OVER (PARTITION BY i.item_id, i.store_id ORDER BY date DESC) AS rn
+from stg.inventory i
+left join  stg.product_master pm on i.item_id=pm.product_code
+left join stg.store_master sm on i.store_id=sm.store_id
+left join stg.cost c on i.item_id=c.product_code
+group by i.date, i.store_id, i.item_id,
+pm.name,
+pm.category,
+pm.subcategory,
+pm.subsubcategory,
+sm.country,
+sm.name
+)
+
+INSERT INTO analytics.inventory (date, store_id, store_name , country, province, city, address,
+product_name, category, subcategory, subsubcategory, avg_inventory, inventory_cost,
+is_last_snapshot, avg_sales_last_7_days, days_on_hand)
+
+Select
+inv.date,
+inv.store_id,
+store_name,
+inv.country, 
+province, 
+city, 
+address,
+product_name,
+category,
+subcategory,
+subsubcategory,
+avg_inventory,
+(avg_inventory* product_cost_usd) as inventory_cost,
+CASE WHEN rn = 1 THEN TRUE ELSE FALSE END AS is_last_snapshot,
+SUM(avg_inventory) OVER (
+    ORDER BY date
+    ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+  ) / 7.0 AS avg_sales_last_7_days,
+  
+  avg_inventory/(SUM(avg_inventory) OVER (
+    ORDER BY date
+    ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
+  ) / 7.0 )as days_on_hand
+from inventario inv
+left join stg.cost c on inv.product_code=c.product_code
+left join stg.store_master sm on inv.store_id=sm.store_id
+
+$$;
