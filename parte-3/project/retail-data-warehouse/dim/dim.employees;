@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS dim.employee
     store_id smallint, 
     "position" character varying(55),
     Duracion INTEGER,
-    is_active boolean,
+    is_active text,
 	CONSTRAINT  store_id_store_master FOREIGN KEY (store_id)
         REFERENCES dim.store_master (store_id)
 )
