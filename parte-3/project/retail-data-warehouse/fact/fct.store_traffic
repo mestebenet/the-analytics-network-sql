@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS fct.store_traffic
    store_id smallint,
    date date,
    traffic smallint,
+	CONSTRAINT unique_id_traffic UNIQUE (store_id,  date),
 		constraint fk_store_traffic_id 
 			foreign key (store_id)
 			references dim.store_master(store_id)
