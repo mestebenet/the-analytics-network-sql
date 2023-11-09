@@ -1,0 +1,7 @@
+--Crear Tabla
+
+Create table log.table_updates (
+			fecha Date,
+			tabla varchar (255),
+			usuario varchar (255)
+
