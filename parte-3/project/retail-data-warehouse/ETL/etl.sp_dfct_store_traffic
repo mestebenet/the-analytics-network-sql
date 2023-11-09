@@ -1,4 +1,4 @@
-Create procedure etl.sp_dfct_store_traffic()language sql as $$
+Create procedure etl.sp_fct_store_traffic()language sql as $$
 
 with trafico as (
 select 
