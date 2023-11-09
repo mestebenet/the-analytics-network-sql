@@ -1,4 +1,4 @@
-Create procedure etl.sp_orden_sale_line()language sql as $$
+Create procedure etl.sp_analytics_order_sale_line()language sql as $$
 
 truncate analytics.order_sale_line; 
 
@@ -41,11 +41,11 @@ with
 	coalesce (credit,0) as credit,
 	coalesce (etl.convert_usd(currency,credit,date),0)as credit_USD,
 	(product_cost_usd*ols.quantity)as sale_line_cost_usd
-		FROM fct.order_line_sale ols
-		left join dim.store_master sm on ols.store=sm.store_id 
-		left join dim.product_master pm on ols.product=pm.product_code
-		left join dim.suppliers s on ols.product=s.product_id
-		left join dim.cost c on ols.product= c.product_code
+		FROM stg.order_line_sale ols
+		left join stg.store_master sm on ols.store=sm.store_id 
+		left join stg.product_master pm on ols.product=pm.product_code
+		left join stg.suppliers s on ols.product=s.product_id
+		left join stg.cost c on ols.product= c.product_code
 		 where s.is_primary= 'True' 
 	),
 	
@@ -92,6 +92,14 @@ with
 							and adj.order_number= r.order_id;
 							
 	$$;
+	
+ 
+	
+	
+	
+
+	
+	
 	
  
 	
