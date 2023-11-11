@@ -1,4 +1,7 @@
-Create procedure etl.sp_analytics_order_sale_line()language sql as $$
+CREATE OR REPLACE PROCEDURE etl.sp_analytics_order_sale_line(
+	)
+LANGUAGE 'sql'
+AS $BODY$
 
 truncate analytics.order_sale_line; 
 
@@ -40,12 +43,12 @@ with
 	coalesce (etl.convert_usd(currency,tax,date),0) as tax_USD,
 	coalesce (credit,0) as credit,
 	coalesce (etl.convert_usd(currency,credit,date),0)as credit_USD,
-	(product_cost_usd*ols.quantity)as sale_line_cost_usd
-		FROM stg.order_line_sale ols
-		left join stg.store_master sm on ols.store=sm.store_id 
-		left join stg.product_master pm on ols.product=pm.product_code
-		left join stg.suppliers s on ols.product=s.product_id
-		left join stg.cost c on ols.product= c.product_code
+	(cost_usd*ols.quantity)as sale_line_cost_usd
+		FROM fct.order_line_sale ols
+		left join dim.store_master sm on ols.store=sm.store_id 
+		left join dim.product_master pm on ols.product=pm.product_code
+		left join dim.supplier s on ols.product=s.product_id
+		left join dim.cost c on ols.product= c.product_id
 		 where s.is_primary= 'True' 
 	),
 	
@@ -91,7 +94,10 @@ with
 							and adj.date = r.date
 							and adj.order_number= r.order_id;
 							
-	$$;
+	
+$BODY$;
+ALTER PROCEDURE etl.sp_analytics_order_sale_line()
+    OWNER TO postgres;
 	
  
 	
