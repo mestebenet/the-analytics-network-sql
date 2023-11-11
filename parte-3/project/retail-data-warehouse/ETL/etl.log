@@ -2,9 +2,9 @@
 --Crear SP
 
 
-CREATE OR REPLACE PROCEDURE etl.log(parametro_fecha date, parametro_tabla varchar(10), parametro_usuario varchar(10))
+CREATE OR REPLACE PROCEDURE etl.log(parametro_fecha date, parametro_tabla varchar(10), parametro_usuario varchar(10), parametro_sp varchar(10))
 LANGUAGE sql AS $$
-insert into log.table_updates(fecha, tabla, usuario)
-select parametro_fecha, parametro_tabla, parametro_usuario
+insert into log.table_updates(fecha, table_name, username, stored_procedure)
+select parametro_fecha, parametro_tabla, parametro_usuario, parametro_sp
 ; 
 $$;
