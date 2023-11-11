@@ -1,0 +1,16 @@
+CREATE TABLE IF NOT EXISTS dim.employee
+(
+    id_employees character varying(10) primary key, 
+    name character varying(55), 
+    surname character varying(55), 
+    start_date date, 
+    end_date date, 
+    phone character varying(55), 
+    country character varying(55), 
+    province character varying(55), 
+    store_id character varying(55), 
+    "position" character varying(55),
+    Duracion INTEGER,
+    is_active text
+	
+)
