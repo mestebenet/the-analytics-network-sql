@@ -1,0 +1,16 @@
+CREATE OR REPLACE PROCEDURE etl.sp_fx_rate_log()
+LANGUAGE plpgsql AS $$
+DECLARE
+  usuario varchar(10) := current_user ;
+BEGIN
+  usuario := current_user;
+
+  INSERT INTO fct.fx_rate (month, fx_rate_usd_peso, fx_rate_usd_eur, fx_rate_usd_uru)
+  SELECT month, fx_rate_usd_peso, fx_rate_usd_eur, fx_rate_usd_uru
+  FROM stg.monthly_average_fx_rate
+  ON CONFLICT (month)
+  DO NOTHING;
+
+CALL etl.log(current_date, 'fct.fx_rate', usuario, 'etl.sp_fx_rate_log');
+END;
+$$;
