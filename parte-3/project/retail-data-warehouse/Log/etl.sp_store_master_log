@@ -1,16 +1,10 @@
-CCREATE OR REPLACE PROCEDURE etl.sp_general()
-LANGUAGE plpgsql AS $$
+Create procedure etl.sp_store_master_log()LANGUAGE plpgsql AS $$
+DECLARE
+  usuario varchar(10) := current_user ;
 BEGIN
-  PERFORM etl.fct_return_movements_log();
-  PERFORM etl.sp_dim_cost_log();
-  PERFORM etl.sp_dim_employee_log();
-  PERFORM etl.sp_dim_supplier_log();
-  PERFORM etl.sp_fct_inventory_log();
-  PERFORM etl.sp_fct_order_line_sale_log();
-  PERFORM etl.sp_fct_store_traffic_log();
-  PERFORM etl.sp_fx_rate_log();
-  PERFORM etl.sp_product_master_log();
-  PERFORM etl.sp_store_master_log();
-  
+  usuario := current_user;
+Insert into dim.store_master (store_id, country, province, city, address, name, type, start_date)
+SELECT store_id, country, province, city, address, name, type, start_date
+	FROM stg.store_master
+CALL etl.log(current_date, 'dim.store_master', usuario, 'etl.sp_store_master_log');	
 END;
-$$;
