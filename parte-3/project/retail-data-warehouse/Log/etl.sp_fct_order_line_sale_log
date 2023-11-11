@@ -1,0 +1,18 @@
+Create procedure etl.sp_fct_order_line_sale_log()
+LANGUAGE plpgsql AS $$
+DECLARE
+  usuario varchar(10) := current_user ;
+BEGIN
+  usuario := current_user;
+
+INSERT INTO fct.order_line_sale (order_number, product, store, date, quantity, sale, promotion, tax, credit, currency, pos, is_walkout, line_key)
+	
+
+SELECT order_number, product, store, date, quantity, sale, promotion, tax, credit, currency, pos, is_walkout, line_key
+	FROM stg.order_line_sale
+	
+	ON CONFLICT (order_number, product)
+	DO NOTHING;
+	CALL etl.log(current_date, 'fct.order_line_sale', usuario, 'sp_fct_order_line_sale_log');
+END;
+$$;
