@@ -1,0 +1,14 @@
+Create or replace procedure etl.sp_store_master_log()LANGUAGE plpgsql AS $$
+DECLARE
+  usuario varchar(10) := current_user ;
+BEGIN
+  usuario := current_user;
+
+Insert into dim.store_master (store_id, country, province, city, address, name, type, start_date)
+SELECT store_id, country, province, city, address, name, type, start_date
+	FROM stg.store_master;
+	CALL etl.log(current_date, 'dim.store_master', usuario, 'etl.sp_store_master_log');
+END;
+
+   $$;
+   
