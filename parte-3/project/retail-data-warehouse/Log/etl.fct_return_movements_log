@@ -1,0 +1,15 @@
+Create procedure etl.fct_return_movements_log()
+LANGUAGE plpgsql AS $$
+DECLARE
+  usuario text;
+BEGIN
+  usuario := current_user;
+
+insert into fct.return_movements (order_id, return_id, itemcharacter, quantity, movement_id, from_location, to_location, received_by, date)
+
+SELECT order_id, return_id, itemcharacter, quantity, movement_id, from_location, to_location, received_by, date
+	FROM stg.returns
+	on conflict (return_id) do nothing;
+	CALL etl.log(current_date, 'fct.return_movements', usuario, 'etl.fct_return_movements_log');
+	end;
+	$$;
