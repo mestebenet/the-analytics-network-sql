@@ -1,0 +1,24 @@
+Create procedure etl.sp_dim_cost_log()
+LANGUAGE plpgsql AS $$
+DECLARE
+  usuario text;
+BEGIN
+  usuario := current_user;
+
+WITH stg_cost AS (
+    SELECT 
+        cl.product_code,
+        cl.product_cost_usd
+    FROM stg.cost cl
+    INNER JOIN dim.product_master pm ON pm.product_code = cl.product_code
+)
+INSERT INTO dim.cost (product_id, cost_usd)
+SELECT 
+    product_code,
+    product_cost_usd
+FROM stg_cost
+ON CONFLICT (product_id) DO UPDATE
+SET cost_usd = EXCLUDED.cost_usd;
+CALL etl.log(current_date, 'dim.cost', usuario, 'etl.sp_dim_cost_log');
+END;
+$$;
