@@ -1,5 +1,9 @@
 Create procedure etl.sp_dim_cost_log()
-
+LANGUAGE plpgsql AS $$
+DECLARE
+  usuario text;
+BEGIN
+  usuario := current_user;
 
 WITH stg_cost AS (
     SELECT 
@@ -15,6 +19,6 @@ SELECT
 FROM stg_cost
 ON CONFLICT (product_id) DO UPDATE
 SET cost_usd = EXCLUDED.cost_usd;
-
+CALL etl.log(current_date, 'dim.cost', usuario, 'etl.sp_dim_cost_log');
 END;
 $$;
