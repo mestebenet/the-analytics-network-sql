@@ -16,6 +16,7 @@ CREATE TABLE IF NOT EXISTS fct.order_line_sale
     pos smallint,
     is_walkout boolean,
     line_key character varying(255) COLLATE pg_catalog."default",
+	CONSTRAINT unique_order_product UNIQUE (order_number, product),
 	constraint fk_product_id_sale
 		foreign key (product)
 		references dim.product_master(product_code),
