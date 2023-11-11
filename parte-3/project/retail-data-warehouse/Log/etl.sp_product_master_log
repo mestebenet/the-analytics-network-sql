@@ -1,0 +1,39 @@
+CREATE OR REPLACE PROCEDURE etl.sp_product_master_log()
+LANGUAGE plpgsql AS $$
+DECLARE
+  usuario varchar(10) := current_user ;
+BEGIN
+  usuario := current_user;
+  INSERT INTO dim.product_master (product_code, name, category, subcategory, subsubcategory, material, color, origin, ean, is_active, has_bluetooth, size, brand)
+  SELECT 
+    product_code, 
+    name, 
+    category,
+    subcategory, 
+    subsubcategory,	 
+    COALESCE(INITCAP(material), 'Unknown') AS material,
+    COALESCE(INITCAP(color), 'Unknown') AS color,
+    origin,
+    ean,
+    is_active,
+    has_bluetooth,
+    size, 
+    brand
+  FROM stg.product_master
+  ON CONFLICT (product_code) DO UPDATE
+  SET  name = EXCLUDED.name,
+    category = EXCLUDED.category,
+    subcategory = EXCLUDED.subcategory,
+    subsubcategory = EXCLUDED.subsubcategory,
+    material = EXCLUDED.material,
+    color = EXCLUDED.color,
+    origin = EXCLUDED.origin,
+    ean = EXCLUDED.ean,
+    is_active = EXCLUDED.is_active,
+    has_bluetooth = EXCLUDED.has_bluetooth,
+    size = EXCLUDED.size,
+    brand = EXCLUDED.brand;
+  
+  CALL etl.log(current_date, 'dim.product_master', usuario, 'etl.sp_product_master_log');
+END;
+$$;
