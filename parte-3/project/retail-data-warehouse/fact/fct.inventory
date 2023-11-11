@@ -1,17 +1,23 @@
-DROP TABLE IF EXISTS fct.inventory;
 
-CREATE TABLE IF NOT EXISTS fct.inventory
-(
-    id_inventory bigint generated always as identity primary key,	 
-    date date,
-    store_id smallint,
-    item_id character varying(10) COLLATE pg_catalog."default",
-    initial smallint,
-    final smallint,
-	constraint fk_store_id_inventory
-		foreign key (store_id)
-		references dim.store_master(store_id),
-	constraint fk_item_id_inventory
-		foreign key (item_id)
-		references dim.product_master(product_code)
-)
+
+	CREATE TABLE IF NOT EXISTS fct.inventory
+	(
+		id_inventory bigint NOT NULL GENERATED ALWAYS AS IDENTITY ( INCREMENT 1 START 1 MINVALUE 1 MAXVALUE 9223372036854775807 CACHE 1 ),
+		date date,
+		store_id smallint,
+		item_id character varying(10) COLLATE pg_catalog."default",
+		initial smallint,
+		final smallint,
+		CONSTRAINT inventory_pkey PRIMARY KEY (id_inventory),
+		CONSTRAINT unique_id_inventory UNIQUE (date,  store_id,item_id),
+		CONSTRAINT fk_item_id_inventory FOREIGN KEY (item_id)
+			REFERENCES dim.product_master (product_code) MATCH SIMPLE
+			ON UPDATE NO ACTION
+			ON DELETE NO ACTION,
+		CONSTRAINT fk_store_id_inventory FOREIGN KEY (store_id)
+			REFERENCES dim.store_master (store_id) MATCH SIMPLE
+			ON UPDATE NO ACTION
+			ON DELETE NO ACTION
+	)
+
+
