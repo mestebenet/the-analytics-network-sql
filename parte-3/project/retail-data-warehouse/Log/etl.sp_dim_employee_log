@@ -1,16 +1,32 @@
-CREATE TABLE IF NOT EXISTS dim.employee
-(
-    id_employees character varying(10) primary key, 
-    name character varying(55), 
-    surname character varying(55), 
-    start_date date, 
-    end_date date, 
-    phone character varying(55), 
-    country character varying(55), 
-    province character varying(55), 
-    store_id character varying(55), 
-    "position" character varying(55),
-    Duracion INTEGER,
-    is_active text
+Create procedure etl.sp_dim_employee_log()
+LANGUAGE plpgsql AS $$
+DECLARE
+  usuario text;
+BEGIN
+  usuario := current_user;
+insert into dim.employee (id_employees, name, surname, start_date, end_date, phone, country, province, store_id, "position", duracion, is_active
+	)
+SELECT
 	
-)
+    id_employees, 
+    name, 
+    surname, 
+    start_date, 
+    end_date, 
+    phone, 
+    country, 
+    province, 
+    store_id, 
+    "position",
+    CASE 
+        WHEN end_date IS NULL THEN null
+        ELSE (end_date - start_date)::INTEGER
+    END AS Duracion,
+    CASE
+        WHEN end_date IS NULL THEN 'Activo'
+        ELSE 'Inactivo'
+    END AS is_active
+FROM stg.employees;
+CALL etl.log(current_date, 'dim.employee', usuario, 'etl.sp_dim_employee_log');
+END;
+$$;
