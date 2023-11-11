@@ -2,6 +2,8 @@
 
 Create table log.table_updates (
 			fecha Date,
-			tabla varchar (255),
-			usuario varchar (255)
+			table_name varchar (255),
+			username varchar (255),
+			stored_procedure varchar (255)
+	)
 
