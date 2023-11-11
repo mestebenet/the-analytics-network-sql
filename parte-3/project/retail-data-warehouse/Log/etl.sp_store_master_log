@@ -11,4 +11,3 @@ SELECT store_id, country, province, city, address, name, type, start_date
 END;
 
    $$;
-   
