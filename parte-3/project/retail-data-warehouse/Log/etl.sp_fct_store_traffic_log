@@ -1,0 +1,30 @@
+Create procedure etl.sp_fct_store_traffic_log()
+LANGUAGE plpgsql AS $$
+DECLARE
+  usuario varchar(10) := current_user ;
+BEGIN
+  usuario := current_user;
+with trafico as (
+select 
+store_id, 
+TO_DATE(TO_CHAR(date, '99999999'), 'YYYYMMDD') AS date,
+traffic
+from stg.market_count
+union all
+select store_id,
+TO_DATE(date, 'YYYY-MM-DD') AS date,
+traffic
+from  stg.super_store_count
+)
+ 
+INSERT INTO fct.store_traffic (store_id, date, traffic)
+SELECT 
+    store_id,
+    date,
+    traffic
+FROM trafico
+ON CONFLICT (store_id, date)
+DO NOTHING;
+CALL etl.log(current_date, 'fct.store_traffic', usuario, 'sp_fct_store_traffic_log');
+END;
+$$;
