@@ -1,4 +1,7 @@
-Create procedure etl.sp_analytics_inventory()language sql as $$
+CREATE OR REPLACE PROCEDURE etl.sp_analytics_inventory(
+	)
+LANGUAGE 'sql'
+AS $BODY$
 
 truncate analytics.inventory; 
 
@@ -15,10 +18,10 @@ sm.country,
 sm.name as store_name,
 avg(i.initial+i.final/2) as avg_inventory,
 ROW_NUMBER() OVER (PARTITION BY i.item_id, i.store_id ORDER BY date DESC) AS rn
-from stg.inventory i
-left join  stg.product_master pm on i.item_id=pm.product_code
-left join stg.store_master sm on i.store_id=sm.store_id
-left join stg.cost c on i.item_id=c.product_code
+from fct.inventory i
+left join  dim.product_master pm on i.item_id=pm.product_code
+left join dim.store_master sm on i.store_id=sm.store_id
+left join dim.cost c on i.item_id=c.product_id
 group by i.date, i.store_id, i.item_id,
 pm.name,
 pm.category,
@@ -45,7 +48,7 @@ category,
 subcategory,
 subsubcategory,
 avg_inventory,
-(avg_inventory* product_cost_usd) as inventory_cost,
+(avg_inventory* cost_usd) as inventory_cost,
 CASE WHEN rn = 1 THEN TRUE ELSE FALSE END AS is_last_snapshot,
 SUM(avg_inventory) OVER (
     ORDER BY date
@@ -57,7 +60,9 @@ SUM(avg_inventory) OVER (
     ROWS BETWEEN 6 PRECEDING AND CURRENT ROW
   ) / 7.0 )as days_on_hand
 from inventario inv
-left join stg.cost c on inv.product_code=c.product_code
-left join stg.store_master sm on inv.store_id=sm.store_id
+left join dim.cost c on inv.product_code=c.product_id
+left join dim.store_master sm on inv.store_id=sm.store_id
 
-$$;
+$BODY$;
+ALTER PROCEDURE etl.sp_analytics_inventory()
+    OWNER TO postgres;
