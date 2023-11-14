@@ -11,7 +11,7 @@ SELECT
     phone, 
     country, 
     province, 
-    store_id, 
+   right (store_id,1), 
     "position",
     CASE 
         WHEN end_date IS NULL THEN null
