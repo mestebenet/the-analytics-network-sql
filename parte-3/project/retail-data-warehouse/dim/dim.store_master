@@ -2,7 +2,7 @@ DROP TABLE IF EXISTS dim.store_master;
 
 CREATE TABLE IF NOT EXISTS dim.store_master
 (
-    store_id smallint PRIMARY KEY,
+    store_id character varying(100) PRIMARY KEY,
     country character varying(100),
     province character varying(100),
     city character varying(100),
