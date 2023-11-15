@@ -1,0 +1,38 @@
+CREATE OR REPLACE PROCEDURE etl.sp_backup_dim_fct()
+LANGUAGE plpgsql AS $$
+BEGIN
+    -- Creación de las tablas
+    CREATE TABLE IF NOT EXISTS bkp.bkp_fct_fx_rate_20231115 AS
+        SELECT * FROM fct.fx_rate;
+
+    CREATE TABLE IF NOT EXISTS bkp.bkp_fct_inventory_20231115 AS
+        SELECT * FROM fct.inventory;
+
+    CREATE TABLE IF NOT EXISTS bkp.bkp_fct_order_line_sale_20231115 AS
+        SELECT * FROM fct.order_line_sale;
+
+    CREATE TABLE IF NOT EXISTS bkp.fct_return_movements_20231115 AS
+        SELECT * FROM fct.return_movements;
+
+    CREATE TABLE IF NOT EXISTS bkp.bkp_fct_store_traffic_20231115 AS
+        SELECT * FROM fct.store_traffic;
+
+    CREATE TABLE IF NOT EXISTS bkp.bkp_dim_cost_20231115 AS
+        SELECT * FROM dim.cost;
+
+    CREATE TABLE IF NOT EXISTS bkp.bkp_dim_employee_20231115 AS
+        SELECT * FROM dim.employee;
+
+    CREATE TABLE IF NOT EXISTS bkp.bkp_dim_product_master_20231115 AS
+        SELECT * FROM dim.product_master;
+
+    CREATE TABLE IF NOT EXISTS bkp.bkp_dim_store_master_20231115 AS
+        SELECT * FROM dim.store_master;
+
+    CREATE TABLE IF NOT EXISTS bkp.bkp_dim_supplier_20231115 AS
+        SELECT * FROM dim.supplier;
+
+    -- Confirmación de la transacción
+    COMMIT;
+END;
+$$;
